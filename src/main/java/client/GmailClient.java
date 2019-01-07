@@ -1,58 +1,36 @@
 package client;
 
 import client.message.Message;
+import client.sender.Sender;
 
 import java.io.File;
 
 public class GmailClient {
-    private final String email;
-    private final String password;
+    //private final String email;
+    // private final String password;
 
-    public GmailClient(String email, String password) {
-        this.email = email;
-        this.password = password;
-    }
 
     public static void main(String[] args) {
         // File[] file = new File[]{file1};
         //new GmailClient("serhiy.mazur0@gmail.com", "*******")
         //      .send("Subject", "Text", file, "serhiy.mazur0@gmail.com");*/
+        new GmailClient().start();
 
 
     }
 
-    public  void start() {
+    public void start() {
         File file1 = new File("/home/serhiy/Downloads/maili-beach-park.jpg");
-        new EmailAuthenticator("serhiy.mazur0@gmail.com", "123456789lena").getPasswordAuthentication();
-        Message message =Message.MessageBuilder
-                .setTo("serhiy.mazur0@gmail.com")
-                .setMessage("hi")
-                .setAttachment(file1)
-                .createMessage();
+        File file2 = new File("/home/serhiy/Downloads/test.jpeg");
+
+        Message message = new Message("Hello").to("serhiy.mazur0@gmail.com", "artemgerman1706@gmail.com")
+                .attachFiles(file1, file2);
+        Sender sender = new Sender();
+        sender.sendMessage(new EmailAuthenticator("serhiy.mazur0@gmail.com", "*******")
+                , message);
 
 
     }
 
-   /* public void send(String subject, String text, File[] attachment, String... to) {
-        Sender.getInstanceSender().setTo(to)
-                .setAttachment(attachment)
-                .setSubject(subject)
-                .setMessage(text)
-                .send();
-    }*/
 
-    public void send(String text, File[] attachment, String... to) {
-
-    }
-
-    public void send(String text, String... to) {
-
-    }
-
-    public void send(String subject, String text, String... to) {
-
-    }
-
-    public void receive() {
-    }
 }
