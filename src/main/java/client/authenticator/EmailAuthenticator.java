@@ -1,10 +1,9 @@
-package client;
+package client.authenticator;
 
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
 
-public class EmailAuthenticator extends Authenticator {
-
+public final class EmailAuthenticator extends Authenticator {
 
     private final String login;
     private final String password;
@@ -14,7 +13,7 @@ public class EmailAuthenticator extends Authenticator {
         this.password = password;
     }
 
-    public PasswordAuthentication getPasswordAuthentication() {
+    public final PasswordAuthentication getPasswordAuthentication() {
         return new PasswordAuthentication(login, password);
     }
 

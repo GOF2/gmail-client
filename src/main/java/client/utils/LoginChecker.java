@@ -1,6 +1,5 @@
-package client;
+package client.utils;
 
-import client.utils.Host;
 
 import javax.mail.*;
 

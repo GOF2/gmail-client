@@ -1,9 +1,9 @@
 package client.sender;
 
-import client.EmailAuthenticator;
-import client.LoginChecker;
+import client.authenticator.EmailAuthenticator;
 import client.message.Message;
 import client.utils.Host;
+import client.utils.LoginChecker;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -13,21 +13,23 @@ import javax.mail.internet.*;
 
 
 public class Sender extends LoginChecker implements ISender {
+    private static Transport transport;
+
     @Override
     public void sendMessage(EmailAuthenticator authenticator, Message message) {
         boolean flag = LoginChecker.check(authenticator.getPasswordAuthentication().getUserName()
                 , authenticator.getPasswordAuthentication().getPassword());
         if (flag) {
+
             Session session = Session.getDefaultInstance(Host.getSendProperties(), authenticator);
             MimeMessage mess = formMessage(message, session);
             try {
-                Transport tr = session.getTransport("smtps");
-                tr.connect(Host.getSendProperties().getProperty("mail.smtp.host"),
+                transport = session.getTransport("smtps");
+                Sender.transport.connect(Host.getSendProperties().getProperty("mail.smtp.host"),
                         authenticator.getPasswordAuthentication().getUserName(),
                         authenticator.getPasswordAuthentication().getPassword());
-                tr.sendMessage(mess, mess.getAllRecipients());
+                Sender.transport.sendMessage(mess, mess.getAllRecipients());
                 System.out.println("Mail Sent Successfully");
-                tr.close();
             } catch (SendFailedException sfe) {
                 System.out.println(sfe);
             } catch (MessagingException e1) {
@@ -103,8 +105,14 @@ public class Sender extends LoginChecker implements ISender {
             ae.printStackTrace();
         }
         return parts;
+    }
 
-
+    @Override
+    public void closeConnection() {
+        try {
+            transport.close();
+        } catch (MessagingException ignored) {
+        }
     }
 
 }

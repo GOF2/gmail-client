@@ -2,7 +2,7 @@ package client.message;
 
 import java.io.File;
 
-public class Message {
+public final class Message {
     private String subject;
     private String message;
     private String[] to;
