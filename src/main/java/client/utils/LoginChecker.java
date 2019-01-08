@@ -11,7 +11,7 @@ public class LoginChecker extends Host {
             Transport trSend = sessionSend.getTransport("smtps");
             trSend.connect(Host.getSendProperties().getProperty("mail.smtp.host"), email, password);
             trSend.close();
-            Session sessionRec = Session.getInstance(Host.getSendProperties());
+            Session sessionRec = Session.getInstance(Host.getReceiveProperties());
             Store store = sessionRec.getStore("imaps");
             store.connect(Host.getReceiveProperties().getProperty("mail.imap.host"), email, password);
             store.close();

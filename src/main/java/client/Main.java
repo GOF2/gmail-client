@@ -2,6 +2,7 @@ package client;
 
 import client.authenticator.EmailAuthenticator;
 import client.message.Message;
+import client.utils.LoginChecker;
 
 import java.io.File;
 
@@ -13,9 +14,15 @@ public class Main {
 
         Message message = new Message("Hello").to("serhiy.mazur0@gmail.com")
                 .attachFiles(file1, file2);
-        GmailClient.Sender.closeConnection();
+      GmailClient client = new GmailClient(new EmailAuthenticator("serhiy.mazur0@gmail.com",
+              "123456789lena"));
+        GmailClient client1 = new GmailClient(new EmailAuthenticator("serhiy.mazur0@gmail.com",
+                "12345789lena"));
+        GmailClient client2 = new GmailClient(new EmailAuthenticator("serhiy.mazur0@gmail.com",
+                "123456789ena"));
+        GmailClient client3 = new GmailClient(new EmailAuthenticator("serhiy.mazur0@gmail.com",
+                "123456789lna"));
+        client.send(message);
 
-        GmailClient.Sender.sendMessage(new EmailAuthenticator("serhiy.mazur0@gmail.com",
-                "******"), message);
     }
 }
