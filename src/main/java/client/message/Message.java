@@ -7,7 +7,7 @@ public final class Message {
     private String message;
     private String[] to;
     private File[] attachment;
-
+    private String from;
     public Message(String subject, String message) {
         this.subject = subject;
         this.message = message;
@@ -20,6 +20,9 @@ public final class Message {
 
     private void setTo(String[] to) {
         this.to = to;
+    }
+    private void setFrom(String from) {
+        this.from = from;
     }
 
     private void setAttachment(File[] attachment) {
@@ -38,6 +41,9 @@ public final class Message {
     public String[] getTo() {
         return to;
     }
+    public String getFrom() {
+        return from;
+    }
 
     public File[] getAttachment() {
         return attachment;
@@ -53,5 +59,9 @@ public final class Message {
         return Message.this;
     }
 
+    public Message from(String from) {
+        this.setFrom(from);
+        return Message.this;
+    }
 
 }

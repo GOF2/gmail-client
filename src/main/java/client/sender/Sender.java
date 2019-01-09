@@ -10,6 +10,7 @@ import javax.activation.DataSource;
 import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.*;
+import java.io.UnsupportedEncodingException;
 
 
 public class Sender extends LoginChecker implements ISender {
@@ -26,7 +27,7 @@ public class Sender extends LoginChecker implements ISender {
     @Override
     public void sendMessage(EmailAuthenticator authenticator, Message message) {
         Session session = Session.getDefaultInstance(Host.getSendProperties(), authenticator);
-        MimeMessage mess = formMessage(message, session);
+        MimeMessage mess = formMessage(authenticator,message, session);
         try {
             transport = session.getTransport("smtps");
             Sender.transport.connect(Host.getSendProperties().getProperty("mail.smtp.host"),
@@ -35,7 +36,7 @@ public class Sender extends LoginChecker implements ISender {
             Sender.transport.sendMessage(mess, mess.getAllRecipients());
             System.out.println("Mail Sent Successfully");
         } catch (SendFailedException sfe) {
-            System.out.println(sfe);
+
         } catch (MessagingException e1) {
             e1.printStackTrace();
         }
@@ -55,13 +56,15 @@ public class Sender extends LoginChecker implements ISender {
     }
 
 
-    private MimeMessage formMessage(Message message, Session session) {
+    private MimeMessage formMessage(EmailAuthenticator authenticator,Message message, Session session) {
         MimeMessage mess = new MimeMessage(session);
         try {
             mess.setRecipients(MimeMessage.RecipientType.TO, adresses(message));
             mess.setSubject(message.getSubject());
             mess.setContent(multipart(message));
-        } catch (MessagingException e1) {
+            mess.setFrom(new InternetAddress(
+                    authenticator.getPasswordAuthentication().getUserName(),message.getFrom()));
+        } catch (MessagingException | UnsupportedEncodingException e1) {
             e1.printStackTrace();
         }
         return mess;

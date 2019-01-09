@@ -3,8 +3,8 @@ package client.utils;
 
 import javax.mail.*;
 
-public class LoginChecker extends Host {
-    protected static boolean check(String email, String password) {
+public class LoginChecker {
+    protected static boolean check(String email, String password,ErrorCallbacks errorCallbacks) {
         boolean flag = false;
         try {
             Session sessionSend = Session.getInstance(Host.getSendProperties());
@@ -19,9 +19,9 @@ public class LoginChecker extends Host {
         } catch (NoSuchProviderException np) {
             System.out.println("Wrong provider exception");
         } catch (AuthenticationFailedException e) {
-            System.out.println("Wrong login/password");
+            errorCallbacks.authenticationFailed();
         } catch (MessagingException e) {
-            System.out.println("Message error");
+            errorCallbacks.badInternetConnection();
         }
         return flag;
     }
