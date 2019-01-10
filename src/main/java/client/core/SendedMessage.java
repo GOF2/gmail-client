@@ -1,24 +1,23 @@
 package client.core;
 
+import com.sun.istack.internal.Nullable;
+
 import java.io.File;
 
 public final class SendedMessage extends BaseMessage {
+    private String[] to;
 
-    public SendedMessage(String subject, String message) {
+    public SendedMessage(@Nullable String subject, @Nullable String message) {
         super(subject, message);
     }
 
-    public SendedMessage(String message) {
+    public SendedMessage(@Nullable String message) {
         super(message);
     }
 
     String[] getTo() {
         return to;
     }
-
-    private String[] to;
-
-
     private void setTo(String[] to) {
         this.to = to;
     }
@@ -37,5 +36,4 @@ public final class SendedMessage extends BaseMessage {
         this.setFrom(from);
         return SendedMessage.this;
     }
-
 }
