@@ -11,6 +11,7 @@ import javax.activation.FileDataSource;
 import javax.mail.*;
 import javax.mail.internet.*;
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 
 
 public class Sender extends LoginChecker implements ISender {
@@ -64,6 +65,7 @@ public class Sender extends LoginChecker implements ISender {
             mess.setContent(multipart(message));
             mess.setFrom(new InternetAddress(
                     authenticator.getPasswordAuthentication().getUserName(),message.getFrom()));
+            mess.setSentDate(new Date());
         } catch (MessagingException | UnsupportedEncodingException e1) {
             e1.printStackTrace();
         }
