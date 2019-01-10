@@ -1,9 +1,8 @@
-package client.sender;
+package client.core;
 
-import client.utils.LoginChecker;
 import client.authenticator.EmailAuthenticator;
-import client.message.Message;
 import client.utils.Host;
+import client.utils.LoginChecker;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -26,9 +25,9 @@ public class Sender extends LoginChecker implements ISender {
     }
 
     @Override
-    public void sendMessage(EmailAuthenticator authenticator, Message message) {
+    public void sendMessage(EmailAuthenticator authenticator, SendedMessage message) {
         Session session = Session.getDefaultInstance(Host.getSendProperties(), authenticator);
-        MimeMessage mess = formMessage(authenticator,message, session);
+        MimeMessage mess = formMessage(authenticator, message, session);
         try {
             transport = session.getTransport("smtps");
             Sender.transport.connect(Host.getSendProperties().getProperty("mail.smtp.host"),
@@ -44,7 +43,7 @@ public class Sender extends LoginChecker implements ISender {
     }
 
 
-    private InternetAddress[] adresses(Message message) {
+    private InternetAddress[] adresses(SendedMessage message) {
         InternetAddress[] addresses = new InternetAddress[message.getTo().length];
         try {
             for (int i = 0; i < message.getTo().length; i++) {
@@ -57,22 +56,23 @@ public class Sender extends LoginChecker implements ISender {
     }
 
 
-    private MimeMessage formMessage(EmailAuthenticator authenticator,Message message, Session session) {
+    private MimeMessage formMessage(EmailAuthenticator authenticator, SendedMessage message, Session session) {
         MimeMessage mess = new MimeMessage(session);
         try {
             mess.setRecipients(MimeMessage.RecipientType.TO, adresses(message));
             mess.setSubject(message.getSubject());
             mess.setContent(multipart(message));
             mess.setFrom(new InternetAddress(
-                    authenticator.getPasswordAuthentication().getUserName(),message.getFrom()));
+                    authenticator.getPasswordAuthentication().getUserName(), message.getFrom()));
             mess.setSentDate(new Date());
+            message.setDate(mess.getSentDate());
         } catch (MessagingException | UnsupportedEncodingException e1) {
             e1.printStackTrace();
         }
         return mess;
     }
 
-    private Multipart multipart(Message message) {
+    private Multipart multipart(SendedMessage message) {
         Multipart multipart = new MimeMultipart("mixed");
         try {
             for (BodyPart body : bodyParts(message)) {
@@ -86,7 +86,7 @@ public class Sender extends LoginChecker implements ISender {
     }
 
 
-    private BodyPart[] bodyParts(Message message) {
+    private BodyPart[] bodyParts(SendedMessage message) {
         BodyPart[] parts = new MimeBodyPart[1];
         MimeBodyPart messageBodyPart = new MimeBodyPart();
         MimeBodyPart attachBodyPart;
@@ -96,7 +96,7 @@ public class Sender extends LoginChecker implements ISender {
             if (message.getAttachment() == null) {
                 return parts;
             } else {
-                parts = new MimeBodyPart[message.getAttachment().length+1];
+                parts = new MimeBodyPart[message.getAttachment().length + 1];
                 parts[0] = messageBodyPart;
                 for (int i = 0; i < message.getAttachment().length; i++) {
                     DataSource source = new FileDataSource(message.getAttachment()[i]);

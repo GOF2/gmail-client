@@ -1,26 +1,28 @@
 package client;
 
 import client.authenticator.EmailAuthenticator;
-import client.message.Message;
-import client.sender.Sender;
+import client.core.SendedMessage;
+import client.core.Sender;
 import client.utils.ErrorCallbacks;
 import client.utils.LoginChecker;
 
 
-
 public class GmailClient extends LoginChecker {
 
-    private static  GmailClient client;
+    private static GmailClient client;
     private ErrorCallbacks errorCallbacks;
     private EmailAuthenticator authenticator;
-    public static GmailClient getClient(EmailAuthenticator authenticator,ErrorCallbacks errorCallbacks){
-        if (client==null){
-        return new GmailClient(authenticator,errorCallbacks);}
+
+    public static GmailClient getClient(EmailAuthenticator authenticator, ErrorCallbacks errorCallbacks) {
+        if (client == null) {
+            return new GmailClient(authenticator, errorCallbacks);
+        }
         return client;
     }
-    private GmailClient(EmailAuthenticator authenticator,ErrorCallbacks errorCallbacks) {
+
+    private GmailClient(EmailAuthenticator authenticator, ErrorCallbacks errorCallbacks) {
         LoginChecker.check(authenticator.getPasswordAuthentication().getUserName(),
-                authenticator.getPasswordAuthentication().getPassword(),errorCallbacks);
+                authenticator.getPasswordAuthentication().getPassword(), errorCallbacks);
         this.authenticator = authenticator;
     }
 
@@ -28,7 +30,7 @@ public class GmailClient extends LoginChecker {
         this.errorCallbacks = errorCallbacks;
     }
 
-    public void send(Message message) {
+    public void send(SendedMessage message) {
         Sender.getSender().sendMessage(authenticator, message);
     }
 
