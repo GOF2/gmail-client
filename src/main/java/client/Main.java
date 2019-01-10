@@ -14,7 +14,7 @@ public class Main {
         SendedMessage message = new SendedMessage("Hello").to("serhiy.mazur0@gmail.com").
                 from("Сергей Мазур");
         GmailClient client = GmailClient.getClient(new EmailAuthenticator("serhiy.mazur0@gmail.com",
-                "123456789lena"), new ErrorCallbacks() {
+                "******"), new ErrorCallbacks() {
             @Override
             public void authenticationFailed() {
                 System.out.println("authetication failed");
