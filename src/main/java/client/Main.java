@@ -13,10 +13,10 @@ public class Main {
         File file2 = new File("/home/serhiy/Downloads/test.jpeg");
 
         Message message = new Message("Subject","Hello").to("serhiy.mazur0@gmail.com",
-                "artemgerman1706@gmail.com")
-                .attachFiles(file1, file2).from("Сергей Мазур");
+                "artemgerman1706@gmail.com").attachFiles(file1).
+                from("Сергей Мазур");
         GmailClient client = GmailClient.getClient(new EmailAuthenticator("serhiy.mazur0@gmail.com",
-                "*****"), new ErrorCallbacks() {
+                ""), new ErrorCallbacks() {
             @Override
             public void authenticationFailed() {
                 System.out.println("authetication failed");

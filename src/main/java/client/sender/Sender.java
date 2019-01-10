@@ -87,14 +87,17 @@ public class Sender extends LoginChecker implements ISender {
 
 
     private BodyPart[] bodyParts(Message message) {
-        BodyPart[] parts = new MimeBodyPart[message.getAttachment().length + 1];
+        BodyPart[] parts = new MimeBodyPart[1];
         MimeBodyPart messageBodyPart = new MimeBodyPart();
         MimeBodyPart attachBodyPart;
         try {
             messageBodyPart.setContent(message.getMessage(), "text/plain; charset=utf-8");
             parts[0] = messageBodyPart;
             if (message.getAttachment() == null) {
+                return parts;
             } else {
+                parts = new MimeBodyPart[message.getAttachment().length+1];
+                parts[0] = messageBodyPart;
                 for (int i = 0; i < message.getAttachment().length; i++) {
                     DataSource source = new FileDataSource(message.getAttachment()[i]);
                     attachBodyPart = new MimeBodyPart();
