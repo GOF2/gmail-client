@@ -29,6 +29,12 @@ public abstract class BaseMessage {
         this.attachment = attachment;
     }
 
+    public BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message) {
+        this.from = from;
+        this.subject = subject;
+        this.message = message;
+    }
+
     public Date getDate() {
         return date;
     }

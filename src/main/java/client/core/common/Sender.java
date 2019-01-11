@@ -33,9 +33,9 @@ public class Sender {
     }
 
     public void send(SendedMessage message) throws NoSuchProviderException, NoInternetException, SendFailedException {
-        final Session session = Session.getDefaultInstance(Host.getSendProperties(), authenticator);
+        final Session session = Session.getInstance(Host.getSendProperties(), authenticator);
         final MimeMessage mess = formMessage(authenticator, message, session);
-        transport = session.getTransport("smtps");
+        transport = session.getTransport(Host.getSendProperties().getProperty("mail.smtp.protocol"));
         try {
             final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
             transport.connect(
