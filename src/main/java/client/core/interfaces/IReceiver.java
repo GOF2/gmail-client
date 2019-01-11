@@ -6,7 +6,6 @@ import com.sun.istack.internal.NotNull;
 
 public interface IReceiver {
     void receive(@NotNull ReceiveCallback callback);
-    void closeConnection();
 
     public interface ReceiveCallback extends MessageErrorCallback {
         void onReceive(ReceivedMessage message);

@@ -1,29 +1,36 @@
 package client.utils;
 
 
+import client.authenticator.AuthData;
+import client.authenticator.EmailAuthenticator;
+import client.core.BaseGmailClient;
+import client.core.exceptions.NoInternetException;
+
 import javax.mail.*;
 
 public class LoginChecker {
-    protected static boolean check(String email, String password,ErrorCallbacks errorCallbacks) {
-        boolean flag = false;
+
+    public static void check(String email, String password) throws NoSuchProviderException, NoInternetException, AuthenticationFailedException {
+        final Session sessionSend = Session.getInstance(Host.getSendProperties());
+        final Transport trSend = sessionSend.getTransport("smtps");
         try {
-            Session sessionSend = Session.getInstance(Host.getSendProperties());
-            Transport trSend = sessionSend.getTransport("smtps");
             trSend.connect(Host.getSendProperties().getProperty("mail.smtp.host"), email, password);
             trSend.close();
-            Session sessionRec = Session.getInstance(Host.getReceiveProperties());
-            Store store = sessionRec.getStore("imaps");
+            final Store store = Session.getInstance(Host.getReceiveProperties()).getStore("imaps");
             store.connect(Host.getReceiveProperties().getProperty("mail.imap.host"), email, password);
             store.close();
-            flag = true;
-        } catch (NoSuchProviderException np) {
-            System.out.println("Wrong provider exception");
-        } catch (AuthenticationFailedException e) {
-            errorCallbacks.authenticationFailed();
+        } catch (AuthenticationFailedException | NoInternetException e) {
+            // Looks strange, but connect(...) method throw only a MessagingException
+            throw e;
         } catch (MessagingException e) {
-            errorCallbacks.badInternetConnection();
+            e.printStackTrace();
         }
-        return flag;
     }
 
+    public static void check(EmailAuthenticator emailAuthenticator) throws NoSuchProviderException, NoInternetException, AuthenticationFailedException {
+        final AuthData data = emailAuthenticator.getAuthData();
+        final String email = data.getLogin();
+        final String password = data.getPassword();
+        check(email, password);
+    }
 }
