@@ -2,11 +2,13 @@ package client.core;
 
 import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
+import client.core.common.Receiver;
 import client.core.common.SendedMessage;
 import client.core.common.Sender;
 import client.core.exceptions.NoInternetException;
 import client.core.interfaces.IReceiver;
 import client.core.interfaces.ISender;
+import client.core.interfaces.MailAPI;
 import client.core.interfaces.callbacks.LoginCallback;
 import client.core.interfaces.callbacks.MessageErrorCallback;
 import client.core.interfaces.callbacks.SuccessCallback;
@@ -17,6 +19,8 @@ import javax.mail.AuthenticationFailedException;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
 import javax.mail.SendFailedException;
+
+import static client.utils.ActionUtil.callIfNotNull;
 
 
 public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
@@ -33,11 +37,9 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         callIfNotNull(callbacks, callbacks::beforeLogin);
         try {
             LoginChecker.check(getAuthenticator());
-            callIfNotNull(callbacks, () -> callbacks.onSuccessLogin(this));
-            getAuthenticator().setDataCorrect(true);
+            successAuth(callbacks);
         } catch (NoSuchProviderException | NoInternetException | AuthenticationFailedException e) {
-            callIfNotNull(callbacks, () -> callbacks.onLoginError(e));
-            getAuthenticator().setDataCorrect(false);
+            errorAuth(callbacks, e);
         }
     }
 
@@ -46,11 +48,9 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         callIfNotNull(callback, () -> getBeforeLoginCallback().call());
         try {
             LoginChecker.check(getAuthenticator());
-            callIfNotNull(callback, callback::onSuccess);
-            getAuthenticator().setDataCorrect(true);
+            successAuth(callback);
         } catch (NoSuchProviderException | NoInternetException | AuthenticationFailedException e) {
-            callIfNotNull(callback, () -> callback.onError(e));
-            getAuthenticator().setDataCorrect(false);
+            errorAuth(callback, e);
         }
     }
 
@@ -66,10 +66,10 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
     public void send(SendedMessage message) {
         final Sender sender = Sender.getInstance(getAuthenticator());
         try {
-            if (getAuthenticator().isDataCorrect())
+            if (getAuthenticator().isDataCorrect()) {
                 sender.send(message);
+            }
         } catch (NoSuchProviderException | NoInternetException | SendFailedException e) {
-            // TODO: 11.01.19
             e.printStackTrace();
         }
     }
@@ -95,6 +95,29 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
 
     @Override
     public void receive(IReceiver.ReceiveCallback callback) {
-        // TODO: 11.01.19
+        final EmailAuthenticator authenticator = getAuthenticator();
+        if (authenticator.isDataCorrect()) {
+            Receiver.getInstance(authenticator).handleReceiving(callback);
+        }
+    }
+
+    private void errorAuth(LoginCallback<LoginRequiredClient, MessagingException> callbacks, MessagingException e) {
+        callIfNotNull(callbacks, () -> callbacks.onLoginError(e));
+        getAuthenticator().setDataCorrect(false);
+    }
+
+    private void successAuth(LoginCallback<LoginRequiredClient, MessagingException> callbacks) {
+        callIfNotNull(callbacks, () -> callbacks.onSuccessLogin(this));
+        getAuthenticator().setDataCorrect(true);
+    }
+
+    private void errorAuth(AuthCallback callback, MessagingException e) {
+        callIfNotNull(callback, () -> callback.onError(e));
+        getAuthenticator().setDataCorrect(false);
+    }
+
+    private void successAuth(AuthCallback callback) {
+        callIfNotNull(callback, callback::onSuccess);
+        getAuthenticator().setDataCorrect(true);
     }
 }

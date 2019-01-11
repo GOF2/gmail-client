@@ -8,6 +8,8 @@ import com.sun.istack.internal.NotNull;
 
 import javax.mail.MessagingException;
 
+import static client.utils.ActionUtil.callIfNotNull;
+
 public abstract class LoginRequiredClient {
     private AuthData authData;
     private EmailAuthenticator authenticator;
@@ -57,7 +59,6 @@ public abstract class LoginRequiredClient {
     }
 
     public <T extends LoginRequiredClient> T beforeLogin(Callback callback) {
-        System.out.println("Before login");
         return thisReference(() -> setBeforeLoginCallback(callback));
     }
     public <T extends LoginRequiredClient> T loginWith(@NotNull EmailAuthenticator emailAuthenticator) {
@@ -82,18 +83,10 @@ public abstract class LoginRequiredClient {
         return thisReference(() -> setSuccessLoginCallback(callback));
     }
 
-    @FunctionalInterface
-    public interface Function { void call(); }
-
     @SuppressWarnings("unchecked")
     protected <T extends LoginRequiredClient> T thisReference(Function function) {
         function.call();
         return (T) this;
-    }
-
-    public void callIfNotNull(Object o, Function function) {
-        if (o != null)
-            function.call();
     }
 
     protected <T extends LoginRequiredClient> LoginCallback<T, MessagingException> getLoginCallbacks() {

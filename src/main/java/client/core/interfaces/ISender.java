@@ -9,6 +9,6 @@ public interface ISender {
     void send(@NotNull SendedMessage message);
     void send(@NotNull SendedMessage message, @NotNull SendCallback callback);
 
-    public interface SendCallback extends SuccessCallback, MessageErrorCallback {
+    interface SendCallback extends SuccessCallback, MessageErrorCallback {
     }
 }

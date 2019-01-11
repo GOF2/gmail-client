@@ -14,6 +14,7 @@ public class AuthData {
     public String getLogin() {
         return login;
     }
+
     public String getPassword() {
         return password;
     }

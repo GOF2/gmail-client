@@ -1,6 +1,7 @@
-package client.core;
+package client.core.common;
 
 import client.authenticator.EmailAuthenticator;
+import client.core.IMAPIdle;
 import client.utils.Host;
 import com.sun.mail.imap.IMAPFolder;
 
@@ -9,27 +10,13 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 
-public class Receiver implements IReceiver {
-    private static final Receiver receiver = new Receiver();
-
-    public static Receiver getReceiver() {
-        return receiver;
-    }
-
-    private Receiver() {
-    }
-
-
-    @Override
+public class BaseReceiver {
     public void startListening(IMAPFolder folder) {
-        IMAPIDLE rec = new IMAPIDLE();
+        IMAPIdle rec = new IMAPIdle();
         rec.startListening(folder);
     }
 
-    @Override
-    public void stopListening() {
-
-    }
+    public void stopListening() {}
 
     private Store receiveWithAuthentication(Session session, EmailAuthenticator authenticator) {
         Store store = null;
@@ -46,7 +33,6 @@ public class Receiver implements IReceiver {
 
     }
 
-    @Override
     public IMAPFolder firstReceive(EmailAuthenticator authenticator) {
         Folder emailfolder = null;
         Session emailSession = Session.getDefaultInstance(Host.getReceiveProperties());

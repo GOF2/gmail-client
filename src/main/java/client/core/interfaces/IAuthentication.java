@@ -9,6 +9,6 @@ public interface IAuthentication {
     void auth(@NotNull AuthData authData);
     void auth(@NotNull AuthData authData, @NotNull AuthCallback callback);
 
-    public interface AuthCallback extends SuccessCallback, MessageErrorCallback {
+    interface AuthCallback extends SuccessCallback, MessageErrorCallback {
     }
 }
