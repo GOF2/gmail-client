@@ -25,6 +25,7 @@ public class Main {
                 System.out.println("bad internet");
             }
         });
+        client.closeConnection();
 
 
         client.send(message);

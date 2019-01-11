@@ -36,7 +36,7 @@ public class GmailClient extends LoginChecker {
 
     public void closeConnection() {
         Sender.getSender().closeConnection();
-        //Receiver.getReceiver.closeConnection();
+        //IMAPIDLE.getReceiver.closeConnection();
     }
 
 }
