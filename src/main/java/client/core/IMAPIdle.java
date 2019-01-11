@@ -2,9 +2,9 @@ package client.core;
 
 import com.sun.mail.imap.IMAPFolder;
 
-import javax.mail.*;
+import javax.mail.MessagingException;
 
-public class IMAPIDLE {
+public class IMAPIdle {
     public void startListening(IMAPFolder imapFolder) {
         Thread t = new Thread(
                 new KeepAliveRunnable(imapFolder), "IdleConnectionKeepAlive"
@@ -57,6 +57,4 @@ public class IMAPIDLE {
             }
         }
     }
-
-
 }
