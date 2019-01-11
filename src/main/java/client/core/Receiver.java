@@ -51,7 +51,7 @@ public class Receiver implements IReceiver {
         Folder emailfolder = null;
         Session emailSession = Session.getDefaultInstance(Host.getReceiveProperties());
         try {
-            emailfolder = firstReceive().getFolder("INBOX");
+            //emailfolder = firstReceive().getFolder("INBOX");
             emailfolder.open(Folder.READ_ONLY);
         } catch (MessagingException e1) {
             e1.printStackTrace();

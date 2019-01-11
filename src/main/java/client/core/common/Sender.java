@@ -1,8 +1,8 @@
-package client.core;
+package client.core.common;
 
 import client.authenticator.EmailAuthenticator;
+import client.core.exceptions.NoInternetException;
 import client.utils.Host;
-import client.utils.LoginChecker;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -12,33 +12,43 @@ import javax.mail.internet.*;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
+public class Sender {
+    private Transport transport;
+    private EmailAuthenticator authenticator;
+    private static Sender sender;
 
-public class Sender extends LoginChecker implements ISender {
-    private static Transport transport;
-    private static final Sender sender = new Sender();
+    private Sender(EmailAuthenticator authenticator) {
+        this.authenticator = authenticator;
+    }
 
-    public static Sender getSender() {
+    public static Sender getInstance(EmailAuthenticator authenticator) {
+        if (sender == null) {
+            return new Sender(authenticator);
+        }
         return sender;
     }
 
-    private Sender() {
+    public void setAuthenticator(EmailAuthenticator authenticator) {
+        this.authenticator = authenticator;
     }
 
-    @Override
-    public void sendMessage(EmailAuthenticator authenticator, SendedMessage message) {
-        Session session = Session.getDefaultInstance(Host.getSendProperties(), authenticator);
-        MimeMessage mess = formMessage(authenticator, message, session);
+    public void send(SendedMessage message) throws NoSuchProviderException, NoInternetException, SendFailedException {
+        final Session session = Session.getDefaultInstance(Host.getSendProperties(), authenticator);
+        final MimeMessage mess = formMessage(authenticator, message, session);
+        transport = session.getTransport("smtps");
         try {
-            transport = session.getTransport("smtps");
-            Sender.transport.connect(Host.getSendProperties().getProperty("mail.smtp.host"),
-                    authenticator.getPasswordAuthentication().getUserName(),
-                    authenticator.getPasswordAuthentication().getPassword());
-            Sender.transport.sendMessage(mess, mess.getAllRecipients());
-            System.out.println("Mail Sent Successfully");
-        } catch (SendFailedException sfe) {
-
-        } catch (MessagingException e1) {
-            e1.printStackTrace();
+            final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
+            transport.connect(
+                    Host.getSendProperties().getProperty("mail.smtp.host"),
+                    authentication.getUserName(),
+                    authentication.getPassword()
+            );
+            transport.sendMessage(mess, mess.getAllRecipients());
+        } catch (SendFailedException | NoInternetException e) {
+            // It also looks strange...
+            throw e;
+        } catch (MessagingException e) {
+            e.printStackTrace();
         }
     }
 
@@ -116,12 +126,11 @@ public class Sender extends LoginChecker implements ISender {
         return parts;
     }
 
-    @Override
     public void closeConnection() {
         try {
             transport.close();
-        } catch (MessagingException ignored) {
+        } catch (MessagingException e) {
+            e.printStackTrace();
         }
     }
-
 }
