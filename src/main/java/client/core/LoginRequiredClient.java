@@ -83,7 +83,7 @@ public abstract class LoginRequiredClient {
     }
 
     @FunctionalInterface
-    protected interface Function { void call(); }
+    public interface Function { void call(); }
 
     @SuppressWarnings("unchecked")
     protected <T extends LoginRequiredClient> T thisReference(Function function) {
@@ -91,7 +91,7 @@ public abstract class LoginRequiredClient {
         return (T) this;
     }
 
-    protected void callIfNotNull(Object o, Function function) {
+    public void callIfNotNull(Object o, Function function) {
         if (o != null)
             function.call();
     }

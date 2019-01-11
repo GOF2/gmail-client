@@ -24,16 +24,16 @@ public class GmailClientTest {
     }
 
     private SendedMessage buildMessage() {
-        return new SendedMessage("", "")
-                .from("")
-                .to("");
+        return new SendedMessage("Yesterday", "All my troubles seemed so far away")
+                .from("John Lennon")
+                .to("bbwgd77@gmail.com");
     }
 
     private GmailClient getClient() {
         return GmailClient.get()
-                .loginWith(Gmail.auth("test.mail.client008@gmail.com", "test_mail_client"))
+                .loginWith(Gmail.auth("", ""))
                 .beforeLogin(() -> System.out.print(""))
                 .onLoginError(e -> System.out.println("Login error: " + e.getMessage()))
-                .onLoginSuccess(() -> System.out.println("Save session"));
+                .onLoginSuccess(() -> System.out.println("Login successfully"));
     }
 }

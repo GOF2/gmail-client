@@ -3,6 +3,7 @@ package client.core;
 import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
 import client.core.common.SendedMessage;
+import client.core.common.Sender;
 import client.core.exceptions.NoInternetException;
 import client.core.interfaces.IReceiver;
 import client.core.interfaces.ISender;
@@ -15,10 +16,10 @@ import com.sun.istack.internal.NotNull;
 import javax.mail.AuthenticationFailedException;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
+import javax.mail.SendFailedException;
 
 
 public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
-
     public BaseGmailClient() {
     }
 
@@ -32,10 +33,12 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         callIfNotNull(callbacks, callbacks::beforeLogin);
         try {
             LoginChecker.check(getAuthenticator());
+            callIfNotNull(callbacks, () -> callbacks.onSuccessLogin(this));
+            getAuthenticator().setDataCorrect(true);
         } catch (NoSuchProviderException | NoInternetException | AuthenticationFailedException e) {
             callIfNotNull(callbacks, () -> callbacks.onLoginError(e));
+            getAuthenticator().setDataCorrect(false);
         }
-        callbacks.onSuccessLogin(this);
     }
 
     @Override
@@ -43,10 +46,12 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         callIfNotNull(callback, () -> getBeforeLoginCallback().call());
         try {
             LoginChecker.check(getAuthenticator());
+            callIfNotNull(callback, callback::onSuccess);
+            getAuthenticator().setDataCorrect(true);
         } catch (NoSuchProviderException | NoInternetException | AuthenticationFailedException e) {
             callIfNotNull(callback, () -> callback.onError(e));
+            getAuthenticator().setDataCorrect(false);
         }
-        callIfNotNull(callback, callback::onSuccess);
     }
 
     public <T extends BaseGmailClient> T auth() {
@@ -59,15 +64,33 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
 
     @Override
     public void send(SendedMessage message) {
-        // TODO: 11.01.19
+        final Sender sender = Sender.getInstance(getAuthenticator());
+        try {
+            if (getAuthenticator().isDataCorrect())
+                sender.send(message);
+        } catch (NoSuchProviderException | NoInternetException | SendFailedException e) {
+            // TODO: 11.01.19
+            e.printStackTrace();
+        }
     }
 
     public void send(SendedMessage message, ISender.SendCallback callback) {
-        // TODO: 11.01.19
+        final Sender sender = Sender.getInstance(getAuthenticator());
+        try {
+            if (getAuthenticator().isDataCorrect()) {
+                sender.send(message);
+                callIfNotNull(callback, callback::onSuccess);
+            }
+        } catch (NoSuchProviderException | NoInternetException | SendFailedException e) {
+            callback.onError(e);
+        }
     }
 
     public void send(SendedMessage message, SuccessCallback successCallback, MessageErrorCallback errorCallback) {
-        // TODO: 10.01.19
+        send(message, new SendCallback() {
+            @Override public void onSuccess() { successCallback.onSuccess(); }
+            @Override public void onError(MessagingException e) { errorCallback.onError(e); }
+        });
     }
 
     @Override

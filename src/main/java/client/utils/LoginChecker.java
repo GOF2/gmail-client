@@ -3,7 +3,6 @@ package client.utils;
 
 import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
-import client.core.BaseGmailClient;
 import client.core.exceptions.NoInternetException;
 
 import javax.mail.*;

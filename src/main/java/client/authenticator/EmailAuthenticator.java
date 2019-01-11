@@ -5,6 +5,7 @@ import javax.mail.PasswordAuthentication;
 
 public final class EmailAuthenticator extends Authenticator {
     private final AuthData authData;
+    private boolean dataCorrect;
 
     public EmailAuthenticator(AuthData authData) {
         this.authData = authData;
@@ -12,6 +13,14 @@ public final class EmailAuthenticator extends Authenticator {
 
     public AuthData getAuthData() {
         return authData;
+    }
+
+    public boolean isDataCorrect() {
+        return dataCorrect;
+    }
+
+    public void setDataCorrect(boolean dataCorrect) {
+        this.dataCorrect = dataCorrect;
     }
 
     public final PasswordAuthentication getPasswordAuthentication() {
