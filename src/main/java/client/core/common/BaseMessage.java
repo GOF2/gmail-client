@@ -1,4 +1,4 @@
-package client.core;
+package client.core.common;
 
 import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
@@ -13,16 +13,16 @@ public abstract class BaseMessage {
     private File[] attachment;
     private Date date;
 
-    BaseMessage(@Nullable String subject, @Nullable String message) {
+    public BaseMessage(@Nullable String subject, @Nullable String message) {
         this.subject = subject;
         this.message = message;
     }
 
-    BaseMessage(@Nullable String message) {
+    public BaseMessage(@Nullable String message) {
         this.message = message;
     }
 
-    BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message, @Nullable File[] attachment) {
+    public BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message, @Nullable File[] attachment) {
         this.from = from;
         this.subject = subject;
         this.message = message;
@@ -36,28 +36,28 @@ public abstract class BaseMessage {
         this.date = date;
     }
 
-    String getFrom() {
+    public String getFrom() {
         return from;
     }
     void setFrom(String from) {
         this.from = from;
     }
 
-    String getSubject() {
+    public String getSubject() {
         return subject;
     }
     public void setSubject(String subject) {
         this.subject = subject;
     }
 
-    String getMessage() {
+    public String getMessage() {
         return message;
     }
     public void setMessage(String message) {
         this.message = message;
     }
 
-    File[] getAttachment() {
+    public File[] getAttachment() {
         return attachment;
     }
     void setAttachment(File[] attachment) {

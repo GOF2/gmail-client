@@ -1,4 +1,4 @@
-package client.core;
+package client.core.common;
 
 import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;

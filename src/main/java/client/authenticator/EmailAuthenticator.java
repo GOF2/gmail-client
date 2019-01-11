@@ -10,6 +10,10 @@ public final class EmailAuthenticator extends Authenticator {
         this.authData = authData;
     }
 
+    public AuthData getAuthData() {
+        return authData;
+    }
+
     public final PasswordAuthentication getPasswordAuthentication() {
         return new PasswordAuthentication(authData.getLogin(), authData.getPassword());
     }
