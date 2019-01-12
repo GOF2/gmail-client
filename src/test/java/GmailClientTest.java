@@ -23,6 +23,7 @@ public class GmailClientTest {
     @Test
     public void test1() {
         final BaseGmailClient client = getClient().auth();
+        client.send(buildMessage());
         client.receive(new IReceiver.ReceiveCallback() {
             @Override public void onReceive(List<ReceivedMessage> messages) {
                 System.out.println("Received messages: " + messages
@@ -35,13 +36,12 @@ public class GmailClientTest {
             @Override public void onError(MessagingException e) { System.out.println("Error: " + e.getMessage()); }
         });
     }
-/*
+
     private SendedMessage buildMessage() {
         return new SendedMessage("Yesterday", "All my troubles seemed so far away")
                 .from("John Lennon")
-                .;
+                .to("bbwgd77@gmail.com");
     }
-*/
 
     private GmailClient getClient() {
         return GmailClient.get()

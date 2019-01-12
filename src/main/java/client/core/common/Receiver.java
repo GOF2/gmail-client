@@ -1,26 +1,25 @@
 package client.core.common;
 
 import client.authenticator.EmailAuthenticator;
+import client.core.IMAPIdle;
 import client.core.interfaces.IReceiver;
 import client.utils.Host;
 import com.sun.mail.imap.IMAPFolder;
 
 import javax.mail.*;
+import javax.mail.event.MessageCountAdapter;
+import javax.mail.event.MessageCountEvent;
+import javax.mail.event.MessageCountListener;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import javax.mail.search.FlagTerm;
+import java.io.*;
+import java.util.*;
 
 public class Receiver {
     private static Receiver receiver;
-    private Store store;
+    private static Store store;
     private EmailAuthenticator authenticator;
     private IReceiver.ReceiveCallback receiveCallback;
 
@@ -40,14 +39,20 @@ public class Receiver {
 
     public void handleReceiving(IReceiver.ReceiveCallback callback) {
         this.receiveCallback = callback;
-        listen(receiveCallback);
+        // initialReceive(receiveCallback);
+        startListen();
     }
 
-    private void listen(IReceiver.ReceiveCallback callback) {
+    private void startListen() {
+        receiveNewMessage();
+       // IMAPIdle idle = new IMAPIdle();
+        //idle.startListening(getFolder());
+    }
+
+    private List<ReceivedMessage> buildMessage(Message[] messages) {
         final List<ReceivedMessage> listMessages = new ArrayList<>();
         final List<File> listFiles = new ArrayList<>();
         try {
-            Message[] messages = getFolder().getMessages();
             for (Message message : messages) {
                 Address[] fromAddress = message.getFrom();
                 String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
@@ -94,18 +99,24 @@ public class Receiver {
                     listFiles.clear();
                 }
             }
+        } catch (MessagingException me) {
 
-            //callback.onUpdate(receivedMessage1);
-            //callback.onUpdate(receivedMessage2);
-            //callback.onUpdate(receivedMessage3);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return listMessages;
+    }
+
+    private void initialReceive(IReceiver.ReceiveCallback callback) {
+        try {
+            Message[] messages = getFolder().getMessages();
+            callback.onReceive(buildMessage(messages));
 
             //callback.onError(new MessagingException()); // use in the catch block
         } catch (MessagingException me) {
             callback.onError(me);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
         }
-        callback.onReceive(listMessages);
+
     }
 
 
@@ -127,11 +138,11 @@ public class Receiver {
         return result.toString();
     }
 
-    public IMAPFolder getFolder() throws NoSuchProviderException {
+    public IMAPFolder getFolder() {
         Folder emailFolder = null;
         final Session session = Session.getInstance(Host.getReceiveProperties(), authenticator);
-        store = session.getStore(Host.getSendProperties().getProperty("mail.imaps.protocol"));
         try {
+            store = session.getStore(Host.getSendProperties().getProperty("mail.imaps.protocol"));
             final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
             store.connect(
                     Host.getReceiveProperties().getProperty("mail.imap.host"),
@@ -139,7 +150,7 @@ public class Receiver {
                     authentication.getPassword()
             );
             emailFolder = store.getFolder("INBOX");
-            emailFolder.open(Folder.READ_ONLY);
+            emailFolder.open(Folder.READ_WRITE);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -156,9 +167,113 @@ public class Receiver {
         );
     }
 
-    private ReceivedMessage mockUpdateMessage() {
-        // TODO: 11.01.19 paste here getting new message.
-        // Note: this method can to throw exceptions
-        return new ReceivedMessage("New", "mail => " + new Random().nextInt());
+    public void receiveNewMessage() {
+        IMAPFolder folder  = getFolder();
+        folder.addMessageCountListener(new MessageCountAdapter() {
+            @Override
+            public void messagesAdded(MessageCountEvent e) {
+                Message[] msgs = e.getMessages();
+                System.out.println("new Messages" + msgs.length);
+                for (int i = 0; i < msgs.length; i++) {
+                    receiveCallback.onUpdate(buildMessage(msgs).get(i));
+                }
+            }
+        });
+        IdleThread idleThread = new IdleThread(folder);
+        idleThread.setDaemon(false);
+        idleThread.start();
+            try{
+        idleThread.join();}
+        // idleThread.kill(); //to terminate from another thread
+        catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+
+        close(folder);
+        close(store);
+    }
+
+    }
+
+
+    private static class IdleThread extends Thread {
+        private final Folder folder;
+        private volatile boolean running = true;
+
+        public IdleThread(Folder folder) {
+            super();
+            this.folder = folder;
+        }
+
+        public synchronized void kill() {
+
+            if (!running)
+                return;
+            this.running = false;
+        }
+
+        @Override
+        public void run() {
+            while (running) {
+                try {
+                    ensureOpen(folder);
+                    System.out.println("enter idle");
+                    ((IMAPFolder) folder).idle();
+                } catch (Exception e) {
+                    // something went wrong
+                    // wait and try again
+                    e.printStackTrace();
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e1) {
+                        // ignore
+                    }
+                }
+
+            }
+        }
+    }
+
+    public static void close(final Folder folder) {
+        try {
+            if (folder != null && folder.isOpen()) {
+                folder.close(false);
+            }
+        } catch (final Exception e) {
+            // ignore
+        }
+
+    }
+
+    public static void close(final Store store) {
+        try {
+            if (store != null && store.isConnected()) {
+                store.close();
+            }
+        } catch (final Exception e) {
+            // ignore
+        }
+
+    }
+
+    public static void ensureOpen(final Folder folder) throws MessagingException {
+
+        if (folder != null) {
+            Store store = folder.getStore();
+            if (store != null && !store.isConnected()) {
+                store.connect("serhiy.mazur0@gmail.com", "*****");
+            }
+        } else {
+            throw new MessagingException("Unable to open a null folder");
+        }
+
+        if (folder.exists() && !folder.isOpen() && (folder.getType() & Folder.HOLDS_MESSAGES) != 0) {
+            System.out.println("open folder " + folder.getFullName());
+            folder.open(Folder.READ_ONLY);
+            if (!folder.isOpen())
+                throw new MessagingException("Unable to open folder " + folder.getFullName());
+        }
+
     }
 }
+

@@ -1,8 +1,18 @@
 package client.core;
 
+import client.core.common.ReceivedMessage;
+import client.core.common.Receiver;
+import client.core.interfaces.IReceiver;
+import client.core.interfaces.callbacks.Callback;
 import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.imap.protocol.FLAGS;
 
+import javax.mail.Flags;
+import javax.mail.Folder;
+import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.search.FlagTerm;
+import javax.mail.search.SearchTerm;
 
 public class IMAPIdle {
     public void startListening(IMAPFolder imapFolder) {
@@ -10,7 +20,6 @@ public class IMAPIdle {
                 new KeepAliveRunnable(imapFolder), "IdleConnectionKeepAlive"
         );
         t.start();
-
         while (!Thread.interrupted()) {
             System.out.println("Starting IDLE");
             try {
@@ -21,6 +30,10 @@ public class IMAPIdle {
             }
         }
 
+        interruptIsAlive(t);
+    }
+
+    private void interruptIsAlive(Thread t) {
         if (t.isAlive()) {
             t.interrupt();
         }
@@ -29,7 +42,7 @@ public class IMAPIdle {
 
     private static class KeepAliveRunnable implements Runnable {
 
-        private static final long KEEP_ALIVE_FREQ = 30000; // 5 minutes
+        private static final long KEEP_ALIVE_FREQ = 3000; // 5 minutes
 
         private IMAPFolder folder;
 
@@ -42,19 +55,22 @@ public class IMAPIdle {
             while (!Thread.interrupted()) {
                 try {
                     Thread.sleep(KEEP_ALIVE_FREQ);
+                    System.out.println(folder.getMessageCount());
                     //receive new message and proccess
                     // Perform a NOOP just to keep alive the connection
                     System.out.println("Performing a NOOP to keep alvie the connection");
-                    folder.doCommand(p -> {
-                        p.simpleCommand("NOOP", null);
-                        return null;
-                    });
-                } catch (InterruptedException e) {
+                    protocolCommand();
+                } catch (InterruptedException | MessagingException e) {
                     // Ignore, just aborting the thread...
-                } catch (MessagingException e) {
-                    // Shouldn't really happen...
                 }
             }
+        }
+
+        private void protocolCommand() throws MessagingException {
+            folder.doCommand(p -> {
+                p.simpleCommand("NOOP", null);
+                return null;
+            });
         }
     }
 }
