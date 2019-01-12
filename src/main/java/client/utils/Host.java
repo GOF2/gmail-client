@@ -14,10 +14,10 @@ public class Host {
 
     public static Properties getReceiveProperties() {
         Properties props = System.getProperties();
-        props.put("mail.imaps.host", "imap.gmail.com");
-        props.put("mail.imaps.protocol","imaps");
-        props.put("mail.imaps.port", "993");
-        props.put("mail.imaps.starttls.enable", "true");
+        props.put("mail.pop3.host", "pop.gmail.com");
+        props.put("mail.store.protocol", "pop3s");
+        props.put("mail.pop3.port", "995");
+       // props.put("mail.imaps.starttls.enable", "true");
         return props;
     }
 }

@@ -5,6 +5,7 @@ import client.core.MockedDatabase;
 import client.core.interfaces.IReceiver;
 import client.utils.Host;
 import com.sun.mail.imap.IMAPFolder;
+import com.sun.mail.pop3.POP3Folder;
 import org.jsoup.Jsoup;
 
 import javax.mail.*;
@@ -17,10 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 
 public class Receiver {
@@ -44,24 +42,16 @@ public class Receiver {
 
     public void handleReceiving(IReceiver.ReceiveCallback callback) {
         this.receiveCallback = callback;
-        IMAPFolder folder = ConnectionManager.getFolder(authenticator);
-        folder.addMessageCountListener(listener());
         initialReceive(receiveCallback);
-        startListen(folder);
+        // folder.addMessageCountListener(listener());
+        startListen(ConnectionManager.getFolder(authenticator));
     }
 
 
     private Set<ReceivedMessage> buildMessages(Message[] messages) {
         final Set<ReceivedMessage> receivedMessageSet = new TreeSet<>();
         final List<File> listFiles = new ArrayList<>();
-        FetchProfile fp = new FetchProfile();
-        fp.add(FetchProfile.Item.ENVELOPE);
-        fp.add(IMAPFolder.FetchProfileItem.FLAGS);
-        fp.add(IMAPFolder.FetchProfileItem.CONTENT_INFO);
-
-        fp.add("X-mailer");
         try {
-            ConnectionManager.getFolder(authenticator)  .fetch(messages, fp);
             for (Message message : messages) {
                 Address[] fromAddress = message.getFrom();
                 String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
@@ -97,13 +87,13 @@ public class Receiver {
                 }
                 if (listFiles.size() == 0) {
                     ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text);
-                    receivedMessage.setDate(message.getReceivedDate());
+                    receivedMessage.setDate(message.getSentDate());
                     receivedMessageSet.add(receivedMessage);
                 } else {
                     File[] array = listFiles.toArray(new File[0]);
                     ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text,
                             array);
-                    receivedMessage.setDate(message.getReceivedDate());
+                    receivedMessage.setDate(message.getSentDate());
                     // TODO: 12.01.19
                     receivedMessageSet.add(receivedMessage);
                     listFiles.clear();
@@ -127,11 +117,11 @@ public class Receiver {
             callback.onReceive(setMessages);
             MockedDatabase.getInstance().addAll(setMessages);
             //callback.onError(new MessagingException()); // use in the catch block
-        } catch(MessagingException me){
+        } catch (MessagingException me) {
             callback.onError(me);
         }
 
-        }
+    }
 
 
     private String getTextFromMimeMultipart(Multipart mimeMultipart) throws MessagingException, IOException {
@@ -166,16 +156,15 @@ public class Receiver {
         };
     }
 
-    private void startListen(IMAPFolder folder) {
+    private void startListen(POP3Folder folder) {
         IdleThread idleThread = new IdleThread(folder, authenticator.getAuthData());
         idleThread.setDaemon(false);
         idleThread.start();
-        try{
+        try {
             idleThread.join();
-        }catch (InterruptedException ie){
+        } catch (InterruptedException ie) {
             ie.printStackTrace();
-        }
-        finally {
+        } finally {
             idleThread.kill();
         }
     }

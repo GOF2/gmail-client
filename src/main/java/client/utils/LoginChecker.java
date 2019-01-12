@@ -15,8 +15,8 @@ public class LoginChecker {
         try {
             trSend.connect(Host.getSendProperties().getProperty("mail.smtp.host"), email, password);
             trSend.close();
-            final Store store = Session.getInstance(Host.getReceiveProperties()).getStore("imaps");
-            store.connect(Host.getReceiveProperties().getProperty("mail.imap.host"), email, password);
+            final Store store = Session.getInstance(Host.getReceiveProperties()).getStore("pop3s");
+            store.connect(Host.getReceiveProperties().getProperty("mail.pop3.host"), email, password);
             store.close();
         } catch (AuthenticationFailedException | NoInternetException e) {
             // Looks strange, but connect(...) method throw only a MessagingException
