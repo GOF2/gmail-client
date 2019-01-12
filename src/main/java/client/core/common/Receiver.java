@@ -44,19 +44,24 @@ public class Receiver {
 
     public void handleReceiving(IReceiver.ReceiveCallback callback) {
         this.receiveCallback = callback;
-        ConnectionManager.getFolder(authenticator).addMessageCountListener(listener());
-        startListen();
+        IMAPFolder folder = ConnectionManager.getFolder(authenticator);
+        folder.addMessageCountListener(listener());
         initialReceive(receiveCallback);
+        startListen(folder);
     }
 
-    private void startListen() {
-        receiveNewMessage();
-    }
 
     private Set<ReceivedMessage> buildMessages(Message[] messages) {
         final Set<ReceivedMessage> receivedMessageSet = new TreeSet<>();
         final List<File> listFiles = new ArrayList<>();
+        FetchProfile fp = new FetchProfile();
+        fp.add(FetchProfile.Item.ENVELOPE);
+        fp.add(IMAPFolder.FetchProfileItem.FLAGS);
+        fp.add(IMAPFolder.FetchProfileItem.CONTENT_INFO);
+
+        fp.add("X-mailer");
         try {
+            ConnectionManager.getFolder(authenticator)  .fetch(messages, fp);
             for (Message message : messages) {
                 Address[] fromAddress = message.getFrom();
                 String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
@@ -72,7 +77,7 @@ public class Receiver {
                             InputStream is = bodyPart.getInputStream();
                             File f = new File("/GIT/gmail-client/src/test/java/tmp/" + bodyPart.getFileName());
                             FileOutputStream fos = new FileOutputStream(f);
-                            byte[] buf = new byte[4096];
+                            byte[] buf = new byte[16384];
                             int bytesRead;
                             while ((bytesRead = is.read(buf)) != -1) {
                                 fos.write(buf, 0, bytesRead);
@@ -147,28 +152,16 @@ public class Receiver {
         return result.toString();
     }
 
-    private void receiveNewMessage() {
-        IMAPFolder folder = ConnectionManager.getFolder(authenticator);
-        folder.addMessageCountListener(listener());
-        startListen(folder);
-    }
-
     private MessageCountAdapter listener() {
         return new MessageCountAdapter() {
             @Override
             public void messagesAdded(MessageCountEvent e) {
-                try {
-                    Folder folder = ConnectionManager.getFolder(authenticator);
-                    Message[] messagesArr = folder.getMessages();
-                    System.out.println("new Messages" + messagesArr.length);
-                    Set<ReceivedMessage> messages = buildMessages(messagesArr);
-                    messages.forEach(m ->
-                            receiveCallback.onUpdate(m)
-                    );
-                    MockedDatabase.getInstance().addAll(messages);
-                } catch (MessagingException e1) {
-                    e1.printStackTrace();
-                }
+                Message[] received = e.getMessages();
+                Set<ReceivedMessage> messages = buildMessages(received);
+                messages.forEach(m ->
+                        receiveCallback.onUpdate(m)
+                );
+                MockedDatabase.getInstance().addAll(messages);
             }
         };
     }
@@ -177,6 +170,14 @@ public class Receiver {
         IdleThread idleThread = new IdleThread(folder, authenticator.getAuthData());
         idleThread.setDaemon(false);
         idleThread.start();
+        try{
+            idleThread.join();
+        }catch (InterruptedException ie){
+            ie.printStackTrace();
+        }
+        finally {
+            idleThread.kill();
+        }
     }
 }
 
