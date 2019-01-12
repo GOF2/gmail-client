@@ -1,7 +1,6 @@
 package client.core.common;
 
 import client.authenticator.EmailAuthenticator;
-import client.core.IMAPIdle;
 import client.utils.Host;
 import com.sun.mail.imap.IMAPFolder;
 
@@ -12,8 +11,8 @@ import javax.mail.Store;
 
 public class BaseReceiver {
     public void startListening(IMAPFolder folder) {
-        IMAPIdle rec = new IMAPIdle();
-        rec.startListening(folder);
+
+        startListening(folder);
     }
 
     public void stopListening() {}
