@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class ReceivedMessage extends BaseMessage implements Comparable<ReceivedMessage>, Serializable {
+    public ReceivedMessage () {
+    }
     public ReceivedMessage(@Nullable String subject, @Nullable String message) {
         super(subject, message);
     }

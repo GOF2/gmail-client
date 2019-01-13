@@ -21,6 +21,7 @@ public abstract class BaseMessage {
     public BaseMessage(@Nullable String message) {
         this.message = message;
     }
+    public BaseMessage(){}
 
     public BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message, @Nullable File[] attachment) {
         this.from = from;

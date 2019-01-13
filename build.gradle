@@ -25,7 +25,8 @@ dependencies {
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:20.0'
-
+    compile 'org.checkerframework:checker:2.1.12'
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     // Use JUnit client.test framework
     testImplementation 'junit:junit:4.12'
 }

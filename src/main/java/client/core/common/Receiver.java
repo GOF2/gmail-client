@@ -45,8 +45,12 @@ public class Receiver {
         initialReceive(receiveCallback);
         // folder.addMessageCountListener(listener());
         //startListen(ConnectionManager.getFolder(authenticator));
-        beepForAnHour();
-        compareWithFile();
+        startListen();
+    }
+
+    private void startListen() {
+        Timer timer = new Timer();
+        timer.schedule(new IdleThread(authenticator), 0, 10000);
     }
 
 
@@ -110,15 +114,21 @@ public class Receiver {
         return receivedMessageSet;
     }
 
-    private void compareWithFile(){
+     void compareWithFile()  {
+         Folder folder = ConnectionManager.getFolder(authenticator);
         try {
-            Folder folder = ConnectionManager.getFolder(authenticator);
             int size = folder.getMessageCount();
+            if(size < 0) {
+                folder.close(false);
+                return;
+            }
+            else{
                 FileInputStream file = new FileInputStream("/GIT/gmail-client/src/test/java/tmp/LogData");
                 ObjectInputStream in = new ObjectInputStream(file);
                 Set set = (Set) in.readObject();
                 in.close();
                 file.close();
+
                 if(set.size() < size){
                     Flags seen = new Flags(Flags.Flag.SEEN);
                     FlagTerm unseenFlagTerm = new FlagTerm(seen, false);
@@ -129,7 +139,7 @@ public class Receiver {
                     storeInFile(MockedDatabase.getInstance().getMessages());
 
                     receivedMessages.forEach(m -> receiveCallback.onUpdate(m));
-                }
+                }}
         }catch (MessagingException | IOException | ClassNotFoundException ignored){
             ignored.printStackTrace();
         }
@@ -186,7 +196,7 @@ public class Receiver {
         }
         return result.toString();
     }
-
+/*
     private MessageCountAdapter listener() {
         return new MessageCountAdapter() {
             @Override
@@ -200,17 +210,7 @@ public class Receiver {
             }
         };
     }
+*/
 
-        private final ScheduledExecutorService scheduler =
-                Executors.newScheduledThreadPool(1);
-
-        public void beepForAnHour() {
-            final Runnable beeper = this::compareWithFile;
-            final ScheduledFuture<?> beeperHandle =
-                    scheduler.scheduleAtFixedRate(beeper, 10, 5, SECONDS);
-            scheduler.schedule(() -> {
-                beeperHandle.cancel(true);
-                }, 60 * 60, SECONDS);
-        }
 }
 

@@ -11,9 +11,17 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import javax.mail.MessagingException;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Date;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @RunWith(JUnit4.class)
 public class GmailClientTest {
@@ -55,17 +63,21 @@ public class GmailClientTest {
                 System.out.println("Error: " + e.getMessage());
             }
         });
+        try {
+            FileInputStream file = new FileInputStream("/GIT/gmail-client/src/test/java/tmp/LogData");
+            ObjectInputStream in = new ObjectInputStream(file);
+            Set set = (Set) in.readObject();
+            System.out.println(set.size());
+            set.forEach(System.out::println);
 
-
-        Set<ReceivedMessage> messages = MockedDatabase.getInstance().getMessages();
-        System.out.println(messages.size());
-
-        /*for (ReceivedMessage message : messages) {
-            System.out.println(message.getSubject() + " " + message.getDate());
-        }*/
-
-
+            in.close();
+            file.close();
+        }
+        catch (IOException | ClassNotFoundException ioe){
+            ioe.printStackTrace();
+        }
     }
+
 
     private SendedMessage buildMessage() {
         return new SendedMessage("Yesterday", "All my troubles seemed so far away")
@@ -75,7 +87,7 @@ public class GmailClientTest {
 
     private GmailClient getClient() {
         return GmailClient.get()
-                .loginWith(Gmail.auth("serhiy.mazur1@gmail.com", "123456789lena"))
+                .loginWith(Gmail.auth("serhiy.mazur1@gmail.com", "****"))
                 .beforeLogin(() -> System.out.println("Process login..."))
                 .onLoginError(e -> e.printStackTrace())
                 .onLoginSuccess(() -> System.out.println("Login successfully"));
