@@ -3,9 +3,6 @@ package client.core.common;
 import client.authenticator.EmailAuthenticator;
 import client.core.MockedDatabase;
 import client.core.interfaces.IReceiver;
-import client.utils.Host;
-import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.pop3.POP3Folder;
 import org.jsoup.Jsoup;
 
 import javax.mail.*;
@@ -14,11 +11,14 @@ import javax.mail.event.MessageCountEvent;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.mail.search.FlagTerm;
+import java.io.*;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 
 public class Receiver {
@@ -44,7 +44,9 @@ public class Receiver {
         this.receiveCallback = callback;
         initialReceive(receiveCallback);
         // folder.addMessageCountListener(listener());
-        startListen(ConnectionManager.getFolder(authenticator));
+        //startListen(ConnectionManager.getFolder(authenticator));
+        beepForAnHour();
+        compareWithFile();
     }
 
 
@@ -67,7 +69,7 @@ public class Receiver {
                             InputStream is = bodyPart.getInputStream();
                             File f = new File("/GIT/gmail-client/src/test/java/tmp/" + bodyPart.getFileName());
                             FileOutputStream fos = new FileOutputStream(f);
-                            byte[] buf = new byte[16384];
+                            byte[] buf = new byte[4096];
                             int bytesRead;
                             while ((bytesRead = is.read(buf)) != -1) {
                                 fos.write(buf, 0, bytesRead);
@@ -108,20 +110,63 @@ public class Receiver {
         return receivedMessageSet;
     }
 
+    private void compareWithFile(){
+        try {
+            Folder folder = ConnectionManager.getFolder(authenticator);
+            int size = folder.getMessageCount();
+                FileInputStream file = new FileInputStream("/GIT/gmail-client/src/test/java/tmp/LogData");
+                ObjectInputStream in = new ObjectInputStream(file);
+                Set set = (Set) in.readObject();
+                in.close();
+                file.close();
+                if(set.size() < size){
+                    Flags seen = new Flags(Flags.Flag.SEEN);
+                    FlagTerm unseenFlagTerm = new FlagTerm(seen, false);
+                    Message messages[] = folder.search(unseenFlagTerm);
+                    folder.close(false);
+                    Set<ReceivedMessage> receivedMessages = buildMessages(messages);
+                    MockedDatabase.getInstance().addAll(receivedMessages);
+                    storeInFile(MockedDatabase.getInstance().getMessages());
+
+                    receivedMessages.forEach(m -> receiveCallback.onUpdate(m));
+                }
+        }catch (MessagingException | IOException | ClassNotFoundException ignored){
+            ignored.printStackTrace();
+        }
+    }
 
     private void initialReceive(IReceiver.ReceiveCallback callback) {
         try {
             Folder folder = ConnectionManager.getFolder(authenticator);
             Message[] messages = folder.getMessages();
             Set<ReceivedMessage> setMessages = buildMessages(messages);
+            ConnectionManager.closeFolder();//////////////////////////
             callback.onReceive(setMessages);
             MockedDatabase.getInstance().addAll(setMessages);
+            storeInFile(MockedDatabase.getInstance().getMessages());
             //callback.onError(new MessagingException()); // use in the catch block
         } catch (MessagingException me) {
             callback.onError(me);
         }
+    }
+    private void storeInFile(Set set){
+        try
+        {
+            FileOutputStream file = new FileOutputStream("/GIT/gmail-client/src/test/java/tmp/LogData");
+            ObjectOutputStream out = new ObjectOutputStream(file);
+            // Method for serialization of object
+            out.writeObject(set);
+            out.close();
+            file.close();
+            System.out.println("Object has been serialized");
+        }
+        catch(IOException ex)
+        {
+            System.out.println("IOException is caught");
+        }
 
     }
+
 
 
     private String getTextFromMimeMultipart(Multipart mimeMultipart) throws MessagingException, IOException {
@@ -156,17 +201,16 @@ public class Receiver {
         };
     }
 
-    private void startListen(POP3Folder folder) {
-        IdleThread idleThread = new IdleThread(folder, authenticator.getAuthData());
-        idleThread.setDaemon(false);
-        idleThread.start();
-        try {
-            idleThread.join();
-        } catch (InterruptedException ie) {
-            ie.printStackTrace();
-        } finally {
-            idleThread.kill();
+        private final ScheduledExecutorService scheduler =
+                Executors.newScheduledThreadPool(1);
+
+        public void beepForAnHour() {
+            final Runnable beeper = this::compareWithFile;
+            final ScheduledFuture<?> beeperHandle =
+                    scheduler.scheduleAtFixedRate(beeper, 10, 5, SECONDS);
+            scheduler.schedule(() -> {
+                beeperHandle.cancel(true);
+                }, 60 * 60, SECONDS);
         }
-    }
 }
 

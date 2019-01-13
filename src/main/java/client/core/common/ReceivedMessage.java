@@ -4,9 +4,10 @@ import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Date;
 
-public class ReceivedMessage extends BaseMessage implements Comparable<ReceivedMessage> {
+public class ReceivedMessage extends BaseMessage implements Comparable<ReceivedMessage>, Serializable {
     public ReceivedMessage(@Nullable String subject, @Nullable String message) {
         super(subject, message);
     }

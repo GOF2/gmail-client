@@ -29,7 +29,7 @@ class IdleThread extends Thread {
     public void run() {
         while (running) {
             try {
-                ensureOpen(folder);
+                //ensureOpen(folder);
                 System.out.println("enter idle");
 
                 // ((IMAPFolder) folder).idle();
