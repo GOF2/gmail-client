@@ -6,26 +6,21 @@ import client.core.interfaces.IReceiver;
 import org.jsoup.Jsoup;
 
 import javax.mail.*;
-import javax.mail.event.MessageCountAdapter;
-import javax.mail.event.MessageCountEvent;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 import java.io.*;
-import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 
 public class Receiver {
     private static Receiver receiver;
     private EmailAuthenticator authenticator;
     private IReceiver.ReceiveCallback receiveCallback;
-
     private Receiver(EmailAuthenticator authenticator) {
         this.authenticator = authenticator;
     }
@@ -42,15 +37,15 @@ public class Receiver {
 
     public void handleReceiving(IReceiver.ReceiveCallback callback) {
         this.receiveCallback = callback;
-        initialReceive(receiveCallback);
-        // folder.addMessageCountListener(listener());
-        //startListen(ConnectionManager.getFolder(authenticator));
+        initialReceive();
         startListen();
     }
 
     private void startListen() {
-        Timer timer = new Timer();
-        timer.schedule(new IdleThread(authenticator), 0, 10000);
+        IdleThread thread = new IdleThread(authenticator, receiveCallback);
+        thread.run();
+        //Timer timer = new Timer();
+        //timer.schedule(new IdleThread(authenticator), 5000, 100000);
     }
 
 
@@ -114,54 +109,57 @@ public class Receiver {
         return receivedMessageSet;
     }
 
-     void compareWithFile()  {
-         Folder folder = ConnectionManager.getFolder(authenticator);
+    void compareWithFile(IReceiver.ReceiveCallback receiveCallback) {
+        Flags seen = new Flags(Flags.Flag.SEEN);
+        FlagTerm unseenFlagTerm = new FlagTerm(seen, false);
         try {
-            int size = folder.getMessageCount();
-            if(size < 0) {
-                folder.close(false);
-                return;
+            //ConnectionManager.getFolder(authenticator);
+           // Folder folder = ConnectionManager.getFolder(authenticator);
+            int size = ConnectionManager.getFolder(authenticator).getMessageCount();
+            FileInputStream file = new FileInputStream("/GIT/gmail-client/src/test/java/tmp/LogData");
+            ObjectInputStream in = new ObjectInputStream(file);
+            Set set = (Set) in.readObject();
+            System.out.println(set.size());
+            in.close();
+            file.close();
+            if (set.size() <= size) {
+                unseenFlagTerm = new FlagTerm(seen, false);
+                Message messages[] = ConnectionManager.getFolder(authenticator).search(unseenFlagTerm);
+              /*  FetchProfile fp = new FetchProfile();
+                fp.add(FetchProfile.Item.ENVELOPE);
+
+                fp.add(FetchProfile.Item.CONTENT_INFO);
+
+                folder.fetch(messages, fp);*/
+               // System.out.println(folder.getMessageCount());
+                Set<ReceivedMessage> receivedMessages = buildMessages(messages);
+                ConnectionManager.closeFolder();
+                MockedDatabase.getInstance().addAll(receivedMessages);
+                storeInFile(MockedDatabase.getInstance().getMessages());
+                receivedMessages.forEach(receiveCallback::onUpdate);
             }
-            else{
-                FileInputStream file = new FileInputStream("/GIT/gmail-client/src/test/java/tmp/LogData");
-                ObjectInputStream in = new ObjectInputStream(file);
-                Set set = (Set) in.readObject();
-                in.close();
-                file.close();
-
-                if(set.size() < size){
-                    Flags seen = new Flags(Flags.Flag.SEEN);
-                    FlagTerm unseenFlagTerm = new FlagTerm(seen, false);
-                    Message messages[] = folder.search(unseenFlagTerm);
-                    folder.close(false);
-                    Set<ReceivedMessage> receivedMessages = buildMessages(messages);
-                    MockedDatabase.getInstance().addAll(receivedMessages);
-                    storeInFile(MockedDatabase.getInstance().getMessages());
-
-                    receivedMessages.forEach(m -> receiveCallback.onUpdate(m));
-                }}
-        }catch (MessagingException | IOException | ClassNotFoundException ignored){
+        } catch (MessagingException | IOException | ClassNotFoundException ignored) {
             ignored.printStackTrace();
         }
     }
 
-    private void initialReceive(IReceiver.ReceiveCallback callback) {
+    private void initialReceive() {
         try {
-            Folder folder = ConnectionManager.getFolder(authenticator);
-            Message[] messages = folder.getMessages();
+            //Folder folder = ConnectionManager.getFolder(authenticator);
+            Message[] messages = ConnectionManager.getFolder(authenticator).getMessages();
             Set<ReceivedMessage> setMessages = buildMessages(messages);
-            ConnectionManager.closeFolder();//////////////////////////
-            callback.onReceive(setMessages);
+            ConnectionManager.closeFolder(); //////////////////////////
+            receiveCallback.onReceive(setMessages);
             MockedDatabase.getInstance().addAll(setMessages);
             storeInFile(MockedDatabase.getInstance().getMessages());
             //callback.onError(new MessagingException()); // use in the catch block
         } catch (MessagingException me) {
-            callback.onError(me);
+            receiveCallback.onError(me);
         }
     }
-    private void storeInFile(Set set){
-        try
-        {
+
+    private void storeInFile(Set set) {
+        try {
             FileOutputStream file = new FileOutputStream("/GIT/gmail-client/src/test/java/tmp/LogData");
             ObjectOutputStream out = new ObjectOutputStream(file);
             // Method for serialization of object
@@ -169,14 +167,11 @@ public class Receiver {
             out.close();
             file.close();
             System.out.println("Object has been serialized");
-        }
-        catch(IOException ex)
-        {
+        } catch (IOException ex) {
             System.out.println("IOException is caught");
         }
 
     }
-
 
 
     private String getTextFromMimeMultipart(Multipart mimeMultipart) throws MessagingException, IOException {

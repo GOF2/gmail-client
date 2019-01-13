@@ -11,10 +11,7 @@ public class ConnectionManager {
     private static POP3Folder folder;
 
     static POP3Folder getFolder(EmailAuthenticator authenticator) {
-        if (folder == null) {
-            return createdFolder(authenticator);
-        }
-        return folder;
+        return createdFolder(authenticator);
     }
 
     private static POP3Folder createdFolder(EmailAuthenticator authenticator) {
@@ -28,7 +25,8 @@ public class ConnectionManager {
                     authentication.getPassword()
             );
             folder = (POP3Folder) store.getFolder("INBOX");
-            folder.open(Folder.READ_WRITE);
+            if (folder.exists() && !folder.isOpen())
+                folder.open(Folder.READ_WRITE);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -36,10 +34,11 @@ public class ConnectionManager {
     }
 
     public static void closeFolder() {
+        if(folder.isOpen()){
         try {
             folder.close(false);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-    }
+    }}
 }
