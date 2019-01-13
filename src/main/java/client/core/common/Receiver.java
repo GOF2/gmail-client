@@ -3,7 +3,6 @@ package client.core.common;
 import client.authenticator.EmailAuthenticator;
 import client.core.MockedDatabase;
 import client.core.interfaces.IReceiver;
-import client.utils.Host;
 import com.sun.mail.imap.IMAPFolder;
 import org.jsoup.Jsoup;
 
@@ -12,7 +11,9 @@ import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.search.FlagTerm;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -45,26 +46,27 @@ public class Receiver {
     public void handleReceiving(IReceiver.ReceiveCallback callback) {
         this.receiveCallback = callback;
         ConnectionManager.getFolder(authenticator).addMessageCountListener(listener());
-        startListen();
         initialReceive(receiveCallback);
+        startListen();
     }
 
     private void startListen() {
         receiveNewMessage();
     }
 
-    private Set<ReceivedMessage> buildMessages(Message[] messages) {
+    private Set<ReceivedMessage> buildMessages(MimeMessage[] messages) {
         final Set<ReceivedMessage> receivedMessageSet = new TreeSet<>();
         final List<File> listFiles = new ArrayList<>();
         try {
-            for (Message message : messages) {
-                Address[] fromAddress = message.getFrom();
+            for (MimeMessage message : messages) {
+                MimeMessage cmsg = new MimeMessage(message);
+                Address[] fromAddress = cmsg.getFrom();
                 String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
-                String subject = message.getSubject();
+                String subject = cmsg.getSubject();
                 String text = "";
-                String contentType = message.getContentType();
+                String contentType = cmsg.getContentType();
                 if (contentType.contains("multipart")) {
-                    Multipart multipart = (Multipart) message.getContent();
+                    Multipart multipart = (Multipart) cmsg.getContent();
                     for (int i = 0; i < multipart.getCount(); i++) {
                         MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
                         if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
@@ -84,7 +86,7 @@ public class Receiver {
                         }
                     }
                     if (contentType.contains("text/plain")) {
-                        Object content = message.getContent();
+                        Object content = cmsg.getContent();
                         if (content != null) {
                             text = getTextFromMimeMultipart(multipart);
                         }
@@ -92,13 +94,13 @@ public class Receiver {
                 }
                 if (listFiles.size() == 0) {
                     ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text);
-                    receivedMessage.setDate(message.getReceivedDate());
+                    receivedMessage.setDate(cmsg.getSentDate());
                     receivedMessageSet.add(receivedMessage);
                 } else {
                     File[] array = listFiles.toArray(new File[0]);
                     ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text,
                             array);
-                    receivedMessage.setDate(message.getReceivedDate());
+                    receivedMessage.setDate(cmsg.getSentDate());
                     // TODO: 12.01.19
                     receivedMessageSet.add(receivedMessage);
                     listFiles.clear();
@@ -117,16 +119,16 @@ public class Receiver {
     private void initialReceive(IReceiver.ReceiveCallback callback) {
         try {
             Folder folder = ConnectionManager.getFolder(authenticator);
-            Message[] messages = folder.getMessages();
+            MimeMessage[] messages = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
             Set<ReceivedMessage> setMessages = buildMessages(messages);
             callback.onReceive(setMessages);
             MockedDatabase.getInstance().addAll(setMessages);
             //callback.onError(new MessagingException()); // use in the catch block
-        } catch(MessagingException me){
+        } catch (MessagingException me) {
             callback.onError(me);
         }
 
-        }
+    }
 
 
     private String getTextFromMimeMultipart(Multipart mimeMultipart) throws MessagingException, IOException {
@@ -159,7 +161,7 @@ public class Receiver {
             public void messagesAdded(MessageCountEvent e) {
                 try {
                     Folder folder = ConnectionManager.getFolder(authenticator);
-                    Message[] messagesArr = folder.getMessages();
+                    MimeMessage[] messagesArr = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
                     System.out.println("new Messages" + messagesArr.length);
                     Set<ReceivedMessage> messages = buildMessages(messagesArr);
                     messages.forEach(m ->
@@ -177,6 +179,13 @@ public class Receiver {
         IdleThread idleThread = new IdleThread(folder, authenticator.getAuthData());
         idleThread.setDaemon(false);
         idleThread.start();
+        try {
+            idleThread.join();
+        } catch (InterruptedException ioe) {
+            ioe.printStackTrace();
+            idleThread.close(folder);
+            idleThread.kill();
+        }
     }
 }
 

@@ -33,4 +33,12 @@ public class ConnectionManager {
         }
         return folder;
     }
+
+    static void close() {
+        try {
+            folder.close(false);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
 }
