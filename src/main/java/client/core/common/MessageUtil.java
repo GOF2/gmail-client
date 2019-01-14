@@ -36,7 +36,7 @@ class MessageUtil {
                         if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
                             BodyPart bodyPart = multipart.getBodyPart(i);
                             InputStream is = bodyPart.getInputStream();
-                            File f = new File("/GIT/gmail-client/src/test/java/tmp/" + bodyPart.getFileName());
+                            File f = new File("/tmp/" + bodyPart.getFileName());
                             FileOutputStream fos = new FileOutputStream(f);
                             byte[] buf = new byte[4096];
                             int bytesRead;
