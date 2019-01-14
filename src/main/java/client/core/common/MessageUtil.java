@@ -1,6 +1,5 @@
 package client.core.common;
 
-import client.core.common.ReceivedMessage;
 import org.jsoup.Jsoup;
 
 import javax.mail.*;
@@ -18,7 +17,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 class MessageUtil {
-   static  Set<ReceivedMessage> buildMessages(MimeMessage[] messages) {
+    static Set<ReceivedMessage> buildMessages(MimeMessage[] messages) {
         final Set<ReceivedMessage> receivedMessageSet = new TreeSet<>();
         final List<File> listFiles = new ArrayList<>();
         try {
@@ -36,8 +35,9 @@ class MessageUtil {
                         if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
                             BodyPart bodyPart = multipart.getBodyPart(i);
                             InputStream is = bodyPart.getInputStream();
-                            File f = new File("/tmp/" + bodyPart.getFileName());
-                            FileOutputStream fos = new FileOutputStream(f);
+                            File f = new File("src/main/java/client/tmp/" + bodyPart.getFileName());
+                            f.createNewFile();
+                            FileOutputStream fos = new FileOutputStream(f, false);
                             byte[] buf = new byte[4096];
                             int bytesRead;
                             while ((bytesRead = is.read(buf)) != -1) {
@@ -73,12 +73,12 @@ class MessageUtil {
         } catch (MessagingException ignored) {
 
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
         return receivedMessageSet;
     }
 
-    private  static String getTextFromMimeMultipart(Multipart mimeMultipart) throws MessagingException, IOException {
+    private static String getTextFromMimeMultipart(Multipart mimeMultipart) throws MessagingException, IOException {
         StringBuilder result = new StringBuilder();
         int count = mimeMultipart.getCount();
         for (int i = 0; i < count; i++) {
