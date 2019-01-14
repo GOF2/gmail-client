@@ -7,10 +7,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -35,16 +32,19 @@ class MessageUtil {
                         if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
                             BodyPart bodyPart = multipart.getBodyPart(i);
                             InputStream is = bodyPart.getInputStream();
-                            File f = new File("src/main/java/client/tmp/" + bodyPart.getFileName());
-                            f.createNewFile();
-                            FileOutputStream fos = new FileOutputStream(f, false);
-                            byte[] buf = new byte[4096];
-                            int bytesRead;
-                            while ((bytesRead = is.read(buf)) != -1) {
-                                fos.write(buf, 0, bytesRead);
+                            try {
+                                File f = new File("src/main/java/client/tmp/" + bodyPart.getFileName());
+                                FileOutputStream fos = new FileOutputStream(f, false);
+                                byte[] buf = new byte[4096];
+                                int bytesRead;
+                                while ((bytesRead = is.read(buf)) != -1) {
+                                    fos.write(buf, 0, bytesRead);
+                                }
+                                fos.close();
+                                listFiles.add(f);
+                            } catch (FileNotFoundException e) {
+
                             }
-                            fos.close();
-                            listFiles.add(f);
                         } else {
                             text = getTextFromMimeMultipart(multipart);
                         }
