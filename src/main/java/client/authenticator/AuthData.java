@@ -6,7 +6,7 @@ public class AuthData {
     private final String login;
     private final String password;
 
-    public AuthData(@NotNull String login, @NotNull String password) {
+    AuthData(@NotNull String login, @NotNull String password) {
         this.login = login;
         this.password = password;
     }

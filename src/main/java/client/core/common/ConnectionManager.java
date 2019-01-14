@@ -6,7 +6,7 @@ import com.sun.mail.imap.IMAPFolder;
 
 import javax.mail.*;
 
-public class ConnectionManager {
+class ConnectionManager {
     private static IMAPFolder folder;
 
     static IMAPFolder getFolder(EmailAuthenticator authenticator) {

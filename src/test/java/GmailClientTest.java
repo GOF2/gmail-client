@@ -31,7 +31,7 @@ public class GmailClientTest {
 
     @Test
     public void test1() {
-        final BaseGmailClient client = getClient().auth();
+        final GmailClient client = getClient().auth();
         client.send(buildMessage());
         client.receive(new IReceiver.ReceiveCallback() {
             @Override
@@ -39,10 +39,11 @@ public class GmailClientTest {
                 System.out.println("=====================================================");
                 System.out.println("Received messages: " + messages
                         .stream()
-                        .map(m -> m.getSubject() + " => " + m.getDate())
+                        .map(m ->  " => " + m.getDate())
                         .collect(Collectors.joining("\n"))
                 );
                 System.out.println("=====================================================");
+                System.out.println(messages.size());
             }
 
             @Override
@@ -55,16 +56,6 @@ public class GmailClientTest {
                 System.out.println("Error: " + e.getMessage());
             }
         });
-
-
-        Set<ReceivedMessage> messages = MockedDatabase.getInstance().getMessages();
-        System.out.println(messages.size());
-
-        for (ReceivedMessage message : messages) {
-            System.out.println(message.getSubject() + " " + message.getDate());
-        }
-
-
     }
 
     private SendedMessage buildMessage() {
@@ -75,7 +66,7 @@ public class GmailClientTest {
 
     private GmailClient getClient() {
         return GmailClient.get()
-                .loginWith(Gmail.auth("serhiy.mazur1@gmail.com", ""))
+                .loginWith(Gmail.auth("serhiy.mazur0@gmail.com", "123456789lena"))
                 .beforeLogin(() -> System.out.println("Process login..."))
                 .onLoginError(e -> System.out.println("Login error: " + e.getMessage()))
                 .onLoginSuccess(() -> System.out.println("Login successfully"));

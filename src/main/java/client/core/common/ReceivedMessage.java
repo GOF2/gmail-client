@@ -15,11 +15,11 @@ public class ReceivedMessage extends BaseMessage implements Comparable<ReceivedM
         super(message);
     }
 
-    public ReceivedMessage(@NotNull String from, @Nullable String subject, @Nullable String message, @Nullable File[] attachment) {
+    ReceivedMessage(@NotNull String from, @Nullable String subject, @Nullable String message, @Nullable File[] attachment) {
         super(from, subject, message, attachment);
     }
 
-    public ReceivedMessage(@NotNull String from, @Nullable String subject, @Nullable String message) {
+    ReceivedMessage(@NotNull String from, @Nullable String subject, @Nullable String message) {
         super(from, subject, message);
     }
 

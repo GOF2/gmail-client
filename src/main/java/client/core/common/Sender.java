@@ -126,11 +126,4 @@ public class Sender {
         return parts;
     }
 
-    public void closeConnection() {
-        try {
-            transport.close();
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-    }
 }

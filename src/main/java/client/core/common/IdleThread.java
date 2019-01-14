@@ -43,23 +43,12 @@ class IdleThread extends Thread {
         }
     }
 
-
     void close(final Folder folder) {
         try {
             if (folder != null && folder.isOpen()) {
                 folder.close(false);
             }
-        } catch (final Exception e) {
-        }
-    }
-
-    void close(final Store store) {
-        try {
-            if (store != null && store.isConnected()) {
-                store.close();
-            }
-        } catch (final Exception e) {
-            // ignore
+        } catch (final Exception ignored) {
         }
     }
 

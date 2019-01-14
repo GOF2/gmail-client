@@ -13,23 +13,23 @@ public abstract class BaseMessage {
     private File[] attachment;
     private Date date;
 
-    public BaseMessage(@Nullable String subject, @Nullable String message) {
+    BaseMessage(@Nullable String subject, @Nullable String message) {
         this.subject = subject;
         this.message = message;
     }
 
-    public BaseMessage(@Nullable String message) {
+    BaseMessage(@Nullable String message) {
         this.message = message;
     }
 
-    public BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message, @Nullable File[] attachment) {
+    BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message, @Nullable File[] attachment) {
         this.from = from;
         this.subject = subject;
         this.message = message;
         this.attachment = attachment;
     }
 
-    public BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message) {
+    BaseMessage(@NotNull String from, @Nullable String subject, @Nullable String message) {
         this.from = from;
         this.subject = subject;
         this.message = message;
@@ -42,7 +42,7 @@ public abstract class BaseMessage {
         this.date = date;
     }
 
-    public String getFrom() {
+    String getFrom() {
         return from;
     }
     void setFrom(String from) {
@@ -63,7 +63,7 @@ public abstract class BaseMessage {
         this.message = message;
     }
 
-    public File[] getAttachment() {
+    File[] getAttachment() {
         return attachment;
     }
     void setAttachment(File[] attachment) {

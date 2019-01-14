@@ -7,7 +7,7 @@ public final class EmailAuthenticator extends Authenticator {
     private final AuthData authData;
     private boolean dataCorrect;
 
-    public EmailAuthenticator(AuthData authData) {
+    private EmailAuthenticator(AuthData authData) {
         this.authData = authData;
     }
 

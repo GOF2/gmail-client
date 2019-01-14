@@ -24,7 +24,7 @@ import static client.utils.ActionUtil.callIfNotNull;
 
 
 public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
-    public BaseGmailClient() {
+    BaseGmailClient() {
     }
 
     public BaseGmailClient(@NotNull EmailAuthenticator authenticator) {
