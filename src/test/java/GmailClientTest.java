@@ -33,7 +33,7 @@ public class GmailClientTest {
     public void test1() {
         final GmailClient client = getClient().auth();
         client.send(buildMessage());
-        client.receive(new IReceiver.ReceiveCallback() {
+      /*  client.receive(new IReceiver.ReceiveCallback() {
             @Override
             public void onReceive(Set<ReceivedMessage> messages) {
                 System.out.println("=====================================================");
@@ -55,7 +55,7 @@ public class GmailClientTest {
             public void onError(MessagingException e) {
                 System.out.println("Error: " + e.getMessage());
             }
-        });
+        });*/
     }
 
     private SendedMessage buildMessage() {
@@ -66,7 +66,7 @@ public class GmailClientTest {
 
     private GmailClient getClient() {
         return GmailClient.get()
-                .loginWith(Gmail.auth("serhiy.mazur0@gmail.com", "123456789lena"))
+                .loginWith(Gmail.auth("serhiy.mazur0@gmail.com", "********"))
                 .beforeLogin(() -> System.out.println("Process login..."))
                 .onLoginError(e -> System.out.println("Login error: " + e.getMessage()))
                 .onLoginSuccess(() -> System.out.println("Login successfully"));
