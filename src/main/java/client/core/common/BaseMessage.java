@@ -42,7 +42,7 @@ public abstract class BaseMessage {
         this.date = date;
     }
 
-    String getFrom() {
+    public String getFrom() {
         return from;
     }
     void setFrom(String from) {
@@ -63,7 +63,7 @@ public abstract class BaseMessage {
         this.message = message;
     }
 
-    File[] getAttachment() {
+    public File[] getAttachment() {
         return attachment;
     }
     void setAttachment(File[] attachment) {
