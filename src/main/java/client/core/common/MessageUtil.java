@@ -7,76 +7,82 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 class MessageUtil {
-    static Set<ReceivedMessage> buildMessages(MimeMessage[] messages) {
-        final Set<ReceivedMessage> receivedMessageSet = new TreeSet<>();
-        final List<File> listFiles = new ArrayList<>();
-        try {
-            for (MimeMessage message : messages) {
-                MimeMessage cmsg = new MimeMessage(message);
-                Address[] fromAddress = cmsg.getFrom();
-                String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
-                String subject = cmsg.getSubject();
-                String text = "";
-                String contentType = cmsg.getContentType();
-                if (contentType.contains("multipart")) {
-                    Multipart multipart = (Multipart) cmsg.getContent();
-                    for (int i = 0; i < multipart.getCount(); i++) {
-                        MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
-                        if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
-                            BodyPart bodyPart = multipart.getBodyPart(i);
-                            InputStream is = bodyPart.getInputStream();
-                            try {
-                                File f = new File("src/main/java/client/tmp/" + bodyPart.getFileName());
-                                FileOutputStream fos = new FileOutputStream(f, false);
-                                byte[] buf = new byte[4096];
-                                int bytesRead;
-                                while ((bytesRead = is.read(buf)) != -1) {
-                                    fos.write(buf, 0, bytesRead);
-                                }
-                                fos.close();
-                                listFiles.add(f);
-                            } catch (FileNotFoundException e) {
+    private final static Set<ReceivedMessage> receivedMessageSet = new TreeSet<>();
 
-                            }
-                        } else {
-                            text = getTextFromMimeMultipart(multipart);
-                        }
-                    }
-                    if (contentType.contains("text/plain")) {
-                        Object content = cmsg.getContent();
-                        if (content != null) {
-                            text = getTextFromMimeMultipart(multipart);
-                        }
-                    }
-                }
-                if (listFiles.size() == 0) {
-                    ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text);
-                    receivedMessage.setDate(cmsg.getSentDate());
-                    receivedMessageSet.add(receivedMessage);
-                } else {
-                    File[] array = listFiles.toArray(new File[0]);
-                    ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text, array);
-                    receivedMessage.setDate(cmsg.getSentDate());
-                    // TODO: 12.01.19
-                    receivedMessageSet.add(receivedMessage);
-                    listFiles.clear();
-                }
-            }
-
-        } catch (MessagingException ignored) {
-
-        } catch (IOException e) {
-
+    static Set<ReceivedMessage> messages(MimeMessage[] messages) throws MessagingException, IOException {
+        for (MimeMessage m : messages) {
+            receivedMessageSet.add(buildMessage(m));
         }
         return receivedMessageSet;
     }
+
+    static ReceivedMessage buildMessage(MimeMessage message) throws MessagingException, IOException {
+            return getMessageWithAttachment(message);
+        }
+
+
+    static ReceivedMessage getMessageWithAttachment(MimeMessage cmsg) throws MessagingException, IOException {
+        MimeMessage message = new MimeMessage(cmsg);
+        final List<File> listFiles = new ArrayList<>();
+        Address[] fromAddress = message.getFrom();
+        String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
+        String subject = message.getSubject();
+        String text = "";
+        Multipart multipart = (Multipart) message.getContent();
+        for (int i = 0; i < multipart.getCount(); i++) {
+            MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
+            if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+                MimeBodyPart bodyPart = (MimeBodyPart) multipart.getBodyPart(i);
+                try {
+                    bodyPart.saveFile("src/main/java/client/tmp/" + bodyPart.getFileName());
+                    listFiles.add(new File("src/main/java/client/tmp/" + bodyPart.getFileName()));
+                } catch (FileNotFoundException e) {
+                    return getMessageNoAttachment(message);
+                }
+            }else {
+                text = getTextFromMimeMultipart(multipart);
+            }
+        }
+        if (message.getContentType().contains("text/plain")) {
+            Object content = message.getContent();
+            if (content != null) {
+                text = getTextFromMimeMultipart(multipart);
+            }
+        }
+        File[] array = listFiles.toArray(new File[0]);
+        ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text, array);
+        receivedMessage.setDate(message.getSentDate());
+        listFiles.clear();
+        return receivedMessage;
+    }
+
+    static ReceivedMessage getMessageNoAttachment(MimeMessage cmsg) throws MessagingException, IOException {
+        MimeMessage message = new MimeMessage(cmsg);
+        Address[] fromAddress = message.getFrom();
+        String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
+        String subject = message.getSubject();
+        String text = "";
+        Multipart multipart = (Multipart) message.getContent();
+        for (int i = 0; i < multipart.getCount(); i++) {
+            MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
+            if (!Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+        text =  getTextFromMimeMultipart(multipart);}}
+        ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text);
+        receivedMessage.setDate(message.getSentDate());
+        return receivedMessage;
+    }
+
+
+
 
     private static String getTextFromMimeMultipart(Multipart mimeMultipart) throws MessagingException, IOException {
         StringBuilder result = new StringBuilder();
@@ -95,5 +101,4 @@ class MessageUtil {
         }
         return result.toString();
     }
-
 }

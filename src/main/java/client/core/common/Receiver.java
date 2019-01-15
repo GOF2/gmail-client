@@ -12,9 +12,10 @@ import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
+import java.io.IOException;
 import java.util.Set;
 
-import static client.core.common.MessageUtil.buildMessages;
+import static client.core.common.MessageUtil.messages;
 
 
 public class Receiver extends BaseReceiver {
@@ -44,11 +45,13 @@ public class Receiver extends BaseReceiver {
         try {
             Folder folder = getFolder();
             MimeMessage[] messages = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
-            Set<ReceivedMessage> setMessages = buildMessages(messages);
+            Set<ReceivedMessage> setMessages = MessageUtil.messages(messages);
             callback.onReceive(setMessages);
             MockedDatabase.getInstance().addAll(setMessages);
         } catch (MessagingException me) {
             callback.onError(me);
+        } catch (IOException e) {
+            e.printStackTrace();//????????????????????????????????????????????????????????
         }
     }
 
@@ -66,13 +69,15 @@ public class Receiver extends BaseReceiver {
                     Folder folder = getFolder();
                     MimeMessage[] messagesArr = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
                     System.out.println("new Messages" + messagesArr.length);
-                    Set<ReceivedMessage> messages = buildMessages(messagesArr);
+                    Set<ReceivedMessage> messages = MessageUtil.messages(messagesArr);
                     messages.forEach(m ->
                             receiveCallback.onUpdate(m)
                     );
                     MockedDatabase.getInstance().addAll(messages);
                 } catch (MessagingException e1) {
                     e1.printStackTrace();
+                } catch (IOException e1) {
+                    e1.printStackTrace();//?????????????????????????
                 }
             }
         };

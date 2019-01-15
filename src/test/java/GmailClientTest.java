@@ -66,7 +66,7 @@ public class GmailClientTest {
 
     private GmailClient getClient() {
         return GmailClient.get()
-                .loginWith(Gmail.auth("login", "password"))
+                .loginWith(Gmail.auth("serhiy.mazur1@gmail.com", "123456789lena"))
                 .beforeLogin(() -> System.out.println("Process login..."))
                 .onLoginError(e -> System.out.println("Login error: " + e.getMessage()))
                 .onLoginSuccess(() -> System.out.println("Login successfully"));
