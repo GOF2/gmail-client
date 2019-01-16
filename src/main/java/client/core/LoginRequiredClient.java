@@ -19,6 +19,8 @@ public abstract class LoginRequiredClient {
     private SuccessCallback successLoginCallback;
     private MessageErrorCallback errorLoginCallback;
 
+    public abstract <T extends LoginRequiredClient> T auth();
+
     public void setAuthCallback(IAuthentication.AuthCallback authCallback) {
         this.authCallback = authCallback;
     }
@@ -105,20 +107,17 @@ public abstract class LoginRequiredClient {
 
     protected <T extends LoginRequiredClient> LoginCallback<T, MessagingException> getLoginCallbacks() {
         return new LoginCallback<T, MessagingException>() {
-            @Override
-            public void beforeLogin() {
+            @Override public void beforeLogin() {
                 final Callback callback = LoginRequiredClient.this.beforeLoginCallback;
                 callIfNotNull(callback, callback::call);
             }
 
-            @Override
-            public void onLoginError(MessagingException e) {
+            @Override public void onLoginError(MessagingException e) {
                 final MessageErrorCallback callback = LoginRequiredClient.this.errorLoginCallback;
                 callIfNotNull(callback, () -> callback.onError(e));
             }
 
-            @Override
-            public void onSuccessLogin(T t) {
+            @Override public void onSuccessLogin(T t) {
                 final SuccessCallback callback = LoginRequiredClient.this.successLoginCallback;
                 callIfNotNull(callback, callback::onSuccess);
             }

@@ -38,7 +38,7 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         try {
             LoginChecker.check(getAuthenticator());
             successAuth(callbacks);
-        } catch (NoSuchProviderException | NoInternetException | AuthenticationFailedException e) {
+        } catch (NoSuchProviderException | AuthenticationFailedException | NoInternetException e) {
             errorAuth(callbacks, e);
         }
     }
@@ -49,12 +49,13 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         try {
             LoginChecker.check(getAuthenticator());
             successAuth(callback);
-        } catch (NoSuchProviderException | NoInternetException | AuthenticationFailedException e) {
+        } catch (NoSuchProviderException | AuthenticationFailedException | NoInternetException e) {
             errorAuth(callback, e);
         }
     }
 
-    public <T extends BaseGmailClient> T auth() {
+    @Override
+    public <T extends LoginRequiredClient> T auth() {
         return thisReference(() -> auth(getAuthData()));
     }
 
@@ -69,7 +70,10 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
             if (getAuthenticator().isDataCorrect()) {
                 sender.send(message);
             }
-        } catch (NoSuchProviderException | NoInternetException | SendFailedException e) {
+            else {
+                throw new AuthenticationFailedException("Auth data is incorrect");
+            }
+        } catch (NoSuchProviderException | AuthenticationFailedException| SendFailedException | NoInternetException e) {
             e.printStackTrace();
         }
     }
@@ -81,7 +85,10 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
                 sender.send(message);
                 callIfNotNull(callback, callback::onSuccess);
             }
-        } catch (NoSuchProviderException | NoInternetException | SendFailedException e) {
+            else {
+                throw new AuthenticationFailedException("Auth data is incorrect");
+            }
+        } catch (NoSuchProviderException | AuthenticationFailedException | NoInternetException | SendFailedException e) {
             callback.onError(e);
         }
     }
