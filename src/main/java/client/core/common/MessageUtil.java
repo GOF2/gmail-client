@@ -60,8 +60,12 @@ class MessageUtil {
     }
 
     private static File saveFile(InputStream in, String name) throws IOException {
-        new File("src/main/java/client/tmp/").mkdirs();
+        new File("src/main/java/client/tmp/");
         final File file = new File("src/main/java/client/tmp/" + name);
+        if (!file.getParentFile().exists())
+            file.getParentFile().mkdirs();
+        if (!file.exists())
+            file.createNewFile();
         final byte[] buffer = new byte[in.available()];
         Files.write(buffer, file);
         return file;
@@ -100,9 +104,6 @@ class MessageUtil {
         return result.toString();
     }
 
-    public static String html2text(String html) {
-        return Jsoup.parse(html).text();
-    }
 
         public static List<File> getAttachments (Message message) throws Exception {
             Object content = message.getContent();
