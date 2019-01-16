@@ -26,8 +26,12 @@ class MessageUtil {
     }
 
     static ReceivedMessage buildMessage(MimeMessage message) throws MessagingException, IOException {
+        if (message.getContentType().contains("multipart")) {
             return getMessageWithAttachment(message);
+        } else {
+            return getMessageNoAttachment(message);
         }
+    }
 
 
     static ReceivedMessage getMessageWithAttachment(MimeMessage cmsg) throws MessagingException, IOException {
@@ -48,7 +52,7 @@ class MessageUtil {
                 } catch (FileNotFoundException e) {
                     return getMessageNoAttachment(message);
                 }
-            }else {
+            } else {
                 text = getTextFromMimeMultipart(multipart);
             }
         }
@@ -58,11 +62,17 @@ class MessageUtil {
                 text = getTextFromMimeMultipart(multipart);
             }
         }
-        File[] array = listFiles.toArray(new File[0]);
-        ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text, array);
-        receivedMessage.setDate(message.getSentDate());
-        listFiles.clear();
-        return receivedMessage;
+        if (listFiles.size() == 0) {
+            ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text);
+            receivedMessage.setDate(message.getSentDate());
+            return receivedMessage;
+        } else {
+            File[] array = listFiles.toArray(new File[0]);
+            ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text, array);
+            receivedMessage.setDate(message.getSentDate());
+            listFiles.clear();
+            return receivedMessage;
+        }
     }
 
     static ReceivedMessage getMessageNoAttachment(MimeMessage cmsg) throws MessagingException, IOException {
@@ -70,17 +80,13 @@ class MessageUtil {
         Address[] fromAddress = message.getFrom();
         String email = fromAddress == null ? null : ((InternetAddress) fromAddress[0]).getAddress();
         String subject = message.getSubject();
-        String text = "";
-        Multipart multipart = (Multipart) message.getContent();
-        for (int i = 0; i < multipart.getCount(); i++) {
-            MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
-            if (!Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
-        text =  getTextFromMimeMultipart(multipart);}}
+        String text = html2text(message.getContent().toString());
+       // System.out.println(text);
         ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text);
         receivedMessage.setDate(message.getSentDate());
         return receivedMessage;
-    }
 
+    }
 
 
 
@@ -100,5 +106,9 @@ class MessageUtil {
             }
         }
         return result.toString();
+    }
+
+    public static String html2text(String html) {
+        return Jsoup.parse(html).text();
     }
 }

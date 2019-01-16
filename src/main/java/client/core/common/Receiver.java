@@ -44,7 +44,7 @@ public class Receiver extends BaseReceiver {
     private void initialReceive(IReceiver.ReceiveCallback callback) {
         try {
             Folder folder = getFolder();
-            MimeMessage[] messages = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
+            MimeMessage[] messages = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.USER), true));
             Set<ReceivedMessage> setMessages = MessageUtil.messages(messages);
             callback.onReceive(setMessages);
             MockedDatabase.getInstance().addAll(setMessages);
@@ -79,6 +79,7 @@ public class Receiver extends BaseReceiver {
                 } catch (IOException e1) {
                     e1.printStackTrace();//?????????????????????????
                 }
+                System.out.println();
             }
         };
     }

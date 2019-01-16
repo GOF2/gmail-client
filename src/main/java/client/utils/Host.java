@@ -18,6 +18,8 @@ public class Host {
         props.put("mail.imaps.protocol","imaps");
         props.put("mail.imaps.port", "993");
         props.put("mail.imaps.starttls.enable", "true");
+        props.put("mail.imaps.partialfetch", false);
+        props.put("mail.imaps.fetchsize", "1048576");
         return props;
     }
 }
