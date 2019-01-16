@@ -19,6 +19,10 @@ public abstract class BaseReceiver {
         return ConnectionManager.getFolder(authenticator);
     }
 
+    public void closeFolder() {
+        ConnectionManager.close();
+    }
+
     public EmailAuthenticator getAuthenticator() {
         return authenticator;
     }
