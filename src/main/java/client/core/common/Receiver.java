@@ -14,6 +14,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
 import java.io.IOException;
 import java.util.Set;
+import static client.core.common.MessageUtil.profile;
+
 
 import static client.core.common.MessageUtil.buildMessages;
 

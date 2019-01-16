@@ -11,12 +11,22 @@ import javax.mail.MessagingException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static client.core.common.MessageUtil.profile;
+
 @RunWith(JUnit4.class)
 public class GmailClientTest {
     @Test
+    public void tes() {
+        final GmailClient client = getClient().auth();
+        profile("send()", () -> {
+            client.send(buildMessage());
+        });
+    }
+
+    @Test
     public void test() {
         final GmailClient client = getClient().auth();
-//        client.send(buildMessage());
+        client.send(buildMessage());
         client.receive(new IReceiver.ReceiveCallback() {
             @Override
             public void onReceive(Set<ReceivedMessage> messages) {
@@ -54,7 +64,7 @@ public class GmailClientTest {
     private GmailClient getClient() {
         return GmailClient.get()
                 .loginWith(Gmail.auth("login", "pass"))
-                .loginWith(Gmail.auth("****", "****"))
+                .loginWith(Gmail.auth("serhiy.mazur0@gmail.com", "123456789lena"))
                 .beforeLogin(() -> System.out.println("Process login..."))
                 .onLoginError(e -> System.out.println("Login error: " + e.getMessage()))
                 .onLoginSuccess(() -> System.out.println("Login successfully"));

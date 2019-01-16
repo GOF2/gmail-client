@@ -1,39 +1,38 @@
 package client.core.common;
 
-import com.google.common.io.Files;
+import client.core.interfaces.callbacks.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static client.utils.StringsUtil.isNotBlank;
-
-class MessageUtil {
+public class MessageUtil {
 
     static Set<ReceivedMessage> buildMessages(MimeMessage[] messages) {
         return Stream.of(messages)
                 .parallel()
-                .map(MessageUtil::mimeToNormal)
+                .map(MessageUtil::mimeToReceived)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    private static ReceivedMessage mimeToNormal(MimeMessage message) {
+    private static ReceivedMessage mimeToReceived(MimeMessage message) {
         try {
             final String email = formatAddress(message.getFrom());
             final String subject = message.getSubject();
             final String text = getText(message);
             final Date date = message.getSentDate();
             final List<File> files = getAttachments(message);
-            if (files == null) {
+            if (files == null || files.size() == 0) {
                 return getReceivedMessage(email, subject, text, date);
             } else {
                 return getReceivedMessage(email, subject, text, date, files);
@@ -57,18 +56,6 @@ class MessageUtil {
         final ReceivedMessage receivedMessage = new ReceivedMessage(email, subject, text);
         receivedMessage.setDate(date);
         return receivedMessage;
-    }
-
-    private static File saveFile(InputStream in, String name) throws IOException {
-        new File("src/main/java/client/tmp/");
-        final File file = new File("src/main/java/client/tmp/" + name);
-        if (!file.getParentFile().exists())
-            file.getParentFile().mkdirs();
-        if (!file.exists())
-            file.createNewFile();
-        final byte[] buffer = new byte[in.available()];
-        Files.write(buffer, file);
-        return file;
     }
 
     private static String formatAddress(Address[] fromAddress) {
@@ -105,44 +92,34 @@ class MessageUtil {
     }
 
 
-        public static List<File> getAttachments (Message message) throws Exception {
-            Object content = message.getContent();
-            if (content instanceof String)
-                return null;
-            if (content instanceof Multipart) {
-                Multipart multipart = (Multipart) content;
-                List<File> result = new ArrayList<>();
-                for (int i = 0; i < multipart.getCount(); i++) {
-                    final BodyPart bodyPart = multipart.getBodyPart(i);
-                    for (InputStream stream : getAttachments(bodyPart)) {
-                        final File file = saveFile(stream, bodyPart.getFileName());
-                        result.add(file);
+    public static List<File> getAttachments(MimeMessage message) throws Exception {
+        Object content = message.getContent();
+        if (content instanceof String)
+            return null;
+        else {
+            final List<File> listFiles = new ArrayList<>();
+            Multipart multipart = (Multipart) message.getContent();
+            for (int i = 0; i < multipart.getCount(); i++) {
+                MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(i);
+                if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+                    MimeBodyPart bodyPart = (MimeBodyPart) multipart.getBodyPart(i);
+                    try {
+                        String fileName = "src/main/java/client/tmp/" + bodyPart.getFileName();
+                        bodyPart.saveFile(fileName);
+                        listFiles.add(new File(fileName));
+                    } catch (FileNotFoundException e) {
+                        return null;
                     }
                 }
-                return result;
             }
-            return null;
-        }
-
-        private static List<InputStream> getAttachments (BodyPart part) throws Exception {
-            List<InputStream> result = new ArrayList<>();
-            Object content = part.getContent();
-            if (content instanceof InputStream || content instanceof String) {
-                if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()) || isNotBlank(part.getFileName())) {
-                    result.add(part.getInputStream());
-                    return result;
-                } else {
-                    return new ArrayList<>();
-                }
-            }
-
-            if (content instanceof Multipart) {
-                Multipart multipart = (Multipart) content;
-                for (int i = 0; i < multipart.getCount(); i++) {
-                    BodyPart bodyPart = multipart.getBodyPart(i);
-                    result.addAll(getAttachments(bodyPart));
-                }
-            }
-            return result;
+            return listFiles;
         }
     }
+
+    public static void profile(String text, Function function) {
+        long start = System.currentTimeMillis();
+        function.call();
+        long elapsedTime = System.currentTimeMillis() - start;
+        System.out.println("Method '" + text + "' => time: " + elapsedTime / 1_000 + " sec.");
+    }
+}
