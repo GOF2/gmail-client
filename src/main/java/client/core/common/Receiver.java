@@ -6,7 +6,6 @@ import client.core.interfaces.IReceiver;
 import com.sun.mail.imap.IMAPFolder;
 
 import javax.mail.Flags;
-import javax.mail.Folder;
 import javax.mail.MessagingException;
 import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
@@ -42,14 +41,17 @@ public class Receiver extends BaseReceiver {
 
     private void initialReceive(IReceiver.ReceiveCallback callback) {
         try {
-            Folder folder = getFolder();
-            MimeMessage[] messages = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), true));
-            Set<ReceivedMessage> setMessages = buildMessages(messages);
-            callback.onReceive(setMessages);
-            MockedDatabase.getInstance().addAll(setMessages);
+            MimeMessage[] allMessages = retrieveMessages(Flags.Flag.USER, true);
+            Set<ReceivedMessage> messages = buildMessages(allMessages);
+            callback.onReceive(messages);
+            MockedDatabase.getInstance().addAll(messages);
         } catch (MessagingException me) {
             callback.onError(me);
         }
+    }
+
+    private MimeMessage[] retrieveMessages(Flags.Flag flag, boolean set) throws MessagingException {
+        return (MimeMessage[]) getFolder().search(new FlagTerm(new Flags(flag), set));
     }
 
     private void receiveNewMessage() {
@@ -63,13 +65,10 @@ public class Receiver extends BaseReceiver {
             @Override
             public void messagesAdded(MessageCountEvent e) {
                 try {
-                    Folder folder = getFolder();
-                    MimeMessage[] messagesArr = (MimeMessage[]) folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
-                    System.out.println("new Messages" + messagesArr.length);
-                    Set<ReceivedMessage> messages = buildMessages(messagesArr);
-                    messages.forEach(m ->
-                            receiveCallback.onUpdate(m)
-                    );
+                    MimeMessage[] received = retrieveMessages(Flags.Flag.SEEN, false);
+                    System.out.println("Received len: " + received.length);
+                    Set<ReceivedMessage> messages = buildMessages(received);
+                    messages.forEach(m -> receiveCallback.onUpdate(m));
                     MockedDatabase.getInstance().addAll(messages);
                 } catch (MessagingException e1) {
                     e1.printStackTrace();

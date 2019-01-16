@@ -14,25 +14,27 @@ import java.util.stream.Collectors;
 @RunWith(JUnit4.class)
 public class GmailClientTest {
     @Test
-    public void test1() {
+    public void test() {
         final GmailClient client = getClient().auth();
-        client.send(buildMessage());
+//        client.send(buildMessage());
         client.receive(new IReceiver.ReceiveCallback() {
             @Override
             public void onReceive(Set<ReceivedMessage> messages) {
                 System.out.println("=====================================================");
                 System.out.println("Received messages: " + messages
                         .stream()
-                        .map(m ->  " => " + m.getDate())
+                        .map(m ->  (m.getMessage() + " => " + m.getDate()).trim())
                         .collect(Collectors.joining("\n"))
                 );
+                System.out.println("Received size: " + messages.size());
                 System.out.println("=====================================================");
-                System.out.println(messages.size());
             }
 
             @Override
             public void onUpdate(ReceivedMessage message) {
-                System.out.println("New message: " + message.getMessage() + " => " + message.getDate());
+                System.out.println("-----------------------------------------------------------------");
+                System.out.println("New message: " + (message.getMessage() + " => " + message.getDate()).trim());
+                System.out.println("-----------------------------------------------------------------");
             }
 
             @Override
@@ -50,7 +52,7 @@ public class GmailClientTest {
 
     private GmailClient getClient() {
         return GmailClient.get()
-                .loginWith(Gmail.auth("login", "password"))
+                .loginWith(Gmail.auth("test.mail.client008@gmail.com", "test_mail_client"))
                 .beforeLogin(() -> System.out.println("Process login..."))
                 .onLoginError(e -> System.out.println("Login error: " + e.getMessage()))
                 .onLoginSuccess(() -> System.out.println("Login successfully"));
