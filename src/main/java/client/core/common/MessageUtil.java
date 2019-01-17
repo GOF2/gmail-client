@@ -25,8 +25,9 @@ public class MessageUtil {
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    private static ReceivedMessage mimeToReceived(MimeMessage message) {
+    private static ReceivedMessage mimeToReceived(MimeMessage m) {
         try {
+            MimeMessage message = new MimeMessage(m);
             final String email = formatAddress(message.getFrom());
             final String subject = message.getSubject();
             final String text = getText(message);

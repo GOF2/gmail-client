@@ -35,6 +35,9 @@ public abstract class BaseMessage {
         this.message = message;
     }
 
+    public BaseMessage() {
+    }
+
     public Date getDate() {
         return date;
     }

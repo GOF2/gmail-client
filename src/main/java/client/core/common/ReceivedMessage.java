@@ -29,6 +29,7 @@ public class ReceivedMessage extends BaseMessage implements Comparable<ReceivedM
         super(from, subject, message);
         setDate(date);
     }
+    public ReceivedMessage(){}
 
     @Override
     public int compareTo(ReceivedMessage o) {

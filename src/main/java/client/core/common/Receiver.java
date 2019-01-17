@@ -6,16 +6,13 @@ import client.core.interfaces.IReceiver;
 import com.sun.mail.imap.IMAPFolder;
 
 import javax.mail.Flags;
-import javax.mail.Folder;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
-import java.io.IOException;
 import java.util.Set;
-import static client.core.common.MessageUtil.profile;
-
 
 import static client.core.common.MessageUtil.buildMessages;
 
@@ -60,7 +57,6 @@ public class Receiver extends BaseReceiver {
 
     private void receiveNewMessage() {
         IMAPFolder folder = getFolder();
-        folder.addMessageCountListener(listener());
         startListen(folder);
     }
 
@@ -69,29 +65,45 @@ public class Receiver extends BaseReceiver {
             @Override
             public void messagesAdded(MessageCountEvent e) {
                 try {
-                    MimeMessage[] received = retrieveMessages(Flags.Flag.SEEN, false);
+                    MimeMessage[] received = castMessage(e.getMessages());
                     System.out.println("Received len: " + received.length);
                     Set<ReceivedMessage> messages = buildMessages(received);
                     messages.forEach(m -> receiveCallback.onUpdate(m));
-                    MockedDatabase.getInstance().addAll(messages);
-                } catch (MessagingException e1) {
-                    e1.printStackTrace();
+                } catch (ClassCastException s) {
+                    System.out.println(s.getMessage());
                 }
-                System.out.println();
             }
         };
     }
 
+    private MimeMessage[] castMessage(Message[] messages) {
+        MimeMessage[] cast = new MimeMessage[messages.length];
+        for (int i = 0; i < messages.length; i++) {
+            cast[i] = ((MimeMessage) messages[i]);
+        }
+        return cast;
+    }
+
     private void startListen(IMAPFolder folder) {
-        IdleThread idleThread = new IdleThread(folder, getAuthenticator().getAuthData());
-        idleThread.setDaemon(false);
-        idleThread.start();
-        try {
-            idleThread.join();
-        } catch (InterruptedException ioe) {
-            ioe.printStackTrace();
-            idleThread.close(folder);
-            idleThread.kill();
+        Thread t = new Thread(
+                new KeepAliveRunnable(folder), "IdleConnectionKeepAlive"
+        );
+
+        t.start();
+
+        while (!Thread.interrupted()) {
+            System.out.println("Starting IDLE");
+            try {
+                folder.idle();
+            } catch (MessagingException e) {
+                System.out.println("messaging exception while trying idle");
+                throw new RuntimeException(e);
+            }
+        }
+
+        // Shutdown keep alive thread
+        if (t.isAlive()) {
+            t.interrupt();
         }
     }
 }
