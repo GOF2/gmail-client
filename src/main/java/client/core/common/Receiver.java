@@ -43,9 +43,12 @@ public class Receiver extends BaseReceiver {
 
     private void initialReceive(IReceiver.ReceiveCallback callback) {
         try {
-            MimeMessage[] allMessages = retrieveMessages(Flags.Flag.USER, true);
-            Set<ReceivedMessage> messages = buildMessages(allMessages);
+            MimeMessage[] seenMessages = retrieveMessages(Flags.Flag.SEEN, true);
+            Set<ReceivedMessage> messages = buildMessages(seenMessages);
+            MimeMessage[] unseenMessages = retrieveMessages(Flags.Flag.SEEN, false);
+            Set<ReceivedMessage> unseen = buildMessages(unseenMessages);
             callback.onReceive(messages);
+            unseen.forEach(callback::onUpdate);
         } catch (MessagingException me) {
             callback.onError(me);
         }
