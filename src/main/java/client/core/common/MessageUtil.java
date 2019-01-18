@@ -18,6 +18,12 @@ import java.util.stream.Stream;
 
 public class MessageUtil {
 
+    public static MimeMessage[] castToMime(Message[] messages) {
+        return Arrays.stream(messages)
+                .map(m -> ((MimeMessage) m))
+                .toArray(MimeMessage[]::new);
+    }
+
     static Set<ReceivedMessage> buildMessages(MimeMessage[] messages) {
         return Stream.of(messages)
                 .parallel()

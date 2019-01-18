@@ -15,6 +15,7 @@ import javax.mail.search.FlagTerm;
 import java.util.Set;
 
 import static client.core.common.MessageUtil.buildMessages;
+import static client.core.common.MessageUtil.castToMime;
 
 
 public class Receiver extends BaseReceiver {
@@ -45,7 +46,6 @@ public class Receiver extends BaseReceiver {
             MimeMessage[] allMessages = retrieveMessages(Flags.Flag.USER, true);
             Set<ReceivedMessage> messages = buildMessages(allMessages);
             callback.onReceive(messages);
-            MockedDatabase.getInstance().addAll(messages);
         } catch (MessagingException me) {
             callback.onError(me);
         }
@@ -65,7 +65,7 @@ public class Receiver extends BaseReceiver {
             @Override
             public void messagesAdded(MessageCountEvent e) {
                 try {
-                    MimeMessage[] received = castMessage(e.getMessages());
+                    MimeMessage[] received = castToMime(e.getMessages());
                     System.out.println("Received len: " + received.length);
                     Set<ReceivedMessage> messages = buildMessages(received);
                     messages.forEach(m -> receiveCallback.onUpdate(m));
@@ -76,21 +76,12 @@ public class Receiver extends BaseReceiver {
         };
     }
 
-    private MimeMessage[] castMessage(Message[] messages) {
-        MimeMessage[] cast = new MimeMessage[messages.length];
-        for (int i = 0; i < messages.length; i++) {
-            cast[i] = ((MimeMessage) messages[i]);
-        }
-        return cast;
-    }
-
     private void startListen(IMAPFolder folder) {
         Thread t = new Thread(
                 new KeepAliveRunnable(folder), "IdleConnectionKeepAlive"
         );
 
         t.start();
-
         while (!Thread.interrupted()) {
             System.out.println("Starting IDLE");
             try {

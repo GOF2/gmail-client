@@ -1,13 +1,11 @@
 package client.core.common;
 
 import com.sun.mail.imap.IMAPFolder;
-import com.sun.mail.imap.protocol.IMAPProtocol;
 
 import javax.mail.MessagingException;
-import java.net.ProtocolException;
 
-public class KeepAliveRunnable implements Runnable{
-    private static final long KEEP_ALIVE_FREQ = 300000; // 5 minutes
+public class KeepAliveRunnable implements Runnable {
+    private static final long KEEP_ALIVE_FREQ = 60 * 1000; // 5 minutes
 
     private IMAPFolder folder;
 
