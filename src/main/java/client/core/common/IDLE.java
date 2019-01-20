@@ -4,12 +4,12 @@ import com.sun.mail.imap.IMAPFolder;
 
 import javax.mail.MessagingException;
 
-public class KeepAliveRunnable implements Runnable {
+public class IDLE implements Runnable {
     private static final long KEEP_ALIVE_FREQ = 60 * 1000; // 5 minutes
 
     private IMAPFolder folder;
 
-    public KeepAliveRunnable(IMAPFolder folder) {
+    public IDLE(IMAPFolder folder) {
         this.folder = folder;
     }
 

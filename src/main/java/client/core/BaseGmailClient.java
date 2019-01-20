@@ -2,6 +2,7 @@ package client.core;
 
 import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
+import client.core.common.IDLE;
 import client.core.common.Receiver;
 import client.core.common.SendedMessage;
 import client.core.common.Sender;
@@ -9,6 +10,7 @@ import client.core.exceptions.NoInternetException;
 import client.core.interfaces.IReceiver;
 import client.core.interfaces.ISender;
 import client.core.interfaces.MailAPI;
+import client.core.interfaces.callbacks.Callback;
 import client.core.interfaces.callbacks.LoginCallback;
 import client.core.interfaces.callbacks.MessageErrorCallback;
 import client.core.interfaces.callbacks.SuccessCallback;
@@ -27,6 +29,7 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
     BaseGmailClient() {
     }
 
+
     public BaseGmailClient(@NotNull EmailAuthenticator authenticator) {
         setAuthenticator(authenticator);
     }
@@ -38,10 +41,14 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         try {
             LoginChecker.check(getAuthenticator());
             successAuth(callbacks);
-        } catch (NoSuchProviderException | AuthenticationFailedException | NoInternetException e) {
+        } catch (NoSuchProviderException | AuthenticationFailedException e) {
             errorAuth(callbacks, e);
         }
+        catch (NoInternetException ie){
+
+        }
     }
+
 
     @Override
     public void auth(AuthData authData, AuthCallback callback) {
@@ -127,4 +134,5 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         callIfNotNull(callback, callback::onSuccess);
         getAuthenticator().setDataCorrect(true);
     }
+
 }

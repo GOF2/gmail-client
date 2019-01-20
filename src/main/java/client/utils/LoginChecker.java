@@ -3,6 +3,7 @@ package client.utils;
 
 import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
+import client.core.common.WaitingThread;
 import client.core.exceptions.NoInternetException;
 
 import javax.mail.*;
@@ -18,11 +19,11 @@ public class LoginChecker {
             final Store store = Session.getInstance(Host.getReceiveProperties()).getStore("imaps");
             store.connect(Host.getReceiveProperties().getProperty("mail.imap.host"), email, password);
             store.close();
-        } catch (AuthenticationFailedException | NoInternetException e) {
+        } catch (AuthenticationFailedException | NoInternetException e ) {
             // Looks strange, but connect(...) method throw only a MessagingException
             throw e;
         } catch (MessagingException e) {
-            e.printStackTrace();
+          e.printStackTrace();
         }
     }
 

@@ -41,6 +41,7 @@ public abstract class BaseMessage {
     public Date getDate() {
         return date;
     }
+
     void setDate(Date date) {
         this.date = date;
     }
@@ -48,6 +49,7 @@ public abstract class BaseMessage {
     public String getFrom() {
         return from;
     }
+
     void setFrom(String from) {
         this.from = from;
     }
@@ -55,6 +57,7 @@ public abstract class BaseMessage {
     public String getSubject() {
         return subject;
     }
+
     public void setSubject(String subject) {
         this.subject = subject;
     }
@@ -62,6 +65,7 @@ public abstract class BaseMessage {
     public String getMessage() {
         return message;
     }
+
     public void setMessage(String message) {
         this.message = message;
     }
@@ -69,6 +73,7 @@ public abstract class BaseMessage {
     public File[] getAttachment() {
         return attachment;
     }
+
     void setAttachment(File[] attachment) {
         this.attachment = attachment;
     }

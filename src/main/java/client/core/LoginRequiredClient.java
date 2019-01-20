@@ -4,9 +4,16 @@ import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
 import client.core.interfaces.IAuthentication;
 import client.core.interfaces.callbacks.*;
+import com.google.common.net.InetAddresses;
 import com.sun.istack.internal.NotNull;
 
 import javax.mail.MessagingException;
+
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 import static client.utils.ActionUtil.callIfNotNull;
 
@@ -28,6 +35,10 @@ public abstract class LoginRequiredClient {
     public void setErrorLoginCallback(MessageErrorCallback errorLoginCallback) {
         this.errorLoginCallback = errorLoginCallback;
     }
+
+
+
+
 
     public void setSuccessLoginCallback(SuccessCallback successLoginCallback) {
         this.successLoginCallback = successLoginCallback;

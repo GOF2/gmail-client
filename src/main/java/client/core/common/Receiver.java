@@ -1,12 +1,10 @@
 package client.core.common;
 
 import client.authenticator.EmailAuthenticator;
-import client.core.MockedDatabase;
 import client.core.interfaces.IReceiver;
 import com.sun.mail.imap.IMAPFolder;
 
 import javax.mail.Flags;
-import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
@@ -81,9 +79,8 @@ public class Receiver extends BaseReceiver {
 
     private void startListen(IMAPFolder folder) {
         Thread t = new Thread(
-                new KeepAliveRunnable(folder), "IdleConnectionKeepAlive"
+                new IDLE(folder), "IMAP IDLE"
         );
-
         t.start();
         while (!Thread.interrupted()) {
             System.out.println("Starting IDLE");
@@ -94,8 +91,6 @@ public class Receiver extends BaseReceiver {
                 throw new RuntimeException(e);
             }
         }
-
-        // Shutdown keep alive thread
         if (t.isAlive()) {
             t.interrupt();
         }

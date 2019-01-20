@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 public class MessageUtil {
 
-    public static MimeMessage[] castToMime(Message[] messages) {
+     static MimeMessage[] castToMime(Message[] messages) {
         return Arrays.stream(messages)
                 .map(m -> ((MimeMessage) m))
                 .toArray(MimeMessage[]::new);
@@ -99,7 +99,7 @@ public class MessageUtil {
     }
 
 
-    public static List<File> getAttachments(MimeMessage message) throws Exception {
+    private static List<File> getAttachments(MimeMessage message) throws Exception {
         Object content = message.getContent();
         if (content instanceof String)
             return null;
