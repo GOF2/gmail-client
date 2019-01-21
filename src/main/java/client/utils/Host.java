@@ -25,8 +25,6 @@ public class Host {
         props.put("mail.imaps.starttls.enable", "true");
         props.put("mail.imaps.partialfetch", false);
         props.put("mail.imaps.fetchsize", "1048576");
-        props.put("mail.imaps.timeout", "5000");
-        props.put("mail.imaps.connectiontimeout", "5000");
         return props;
     }
 }
