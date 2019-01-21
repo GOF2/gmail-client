@@ -43,8 +43,7 @@ public class Receiver extends BaseReceiver {
         receiveNewMessage();
     }
 
-
-    private void initialReceive(IReceiver.ReceiveCallback callback) {
+    public void initialReceive(IReceiver.ReceiveCallback callback) {
         try {
             MimeMessage[] seenMessages = retrieveMessages(Flags.Flag.SEEN, true);
             Set<ReceivedMessage> messages = buildMessages(seenMessages);
@@ -69,7 +68,7 @@ public class Receiver extends BaseReceiver {
             receiveCallback.onError(e);
             System.out.println("cannot receive new message in receiver");
         }
-        startListen(folder,receiveCallback);
+        startListen(folder, receiveCallback);
     }
 
     private MessageCountAdapter listener() {
@@ -88,7 +87,7 @@ public class Receiver extends BaseReceiver {
         };
     }
 
-    private void startListen(IMAPFolder folder,IReceiver.ReceiveCallback callback) {
+    private void startListen(IMAPFolder folder, IReceiver.ReceiveCallback callback) {
         Thread t = new Thread(
                 new IDLE(folder), "IMAP IDLE"
         );
@@ -97,11 +96,10 @@ public class Receiver extends BaseReceiver {
             System.out.println("Starting IDLE");
             try {
                 folder.idle();
-            } catch ( MessagingException e) {
+            } catch (MessagingException e) {
                 System.out.println("messaging exception while trying idle");
                 callback.onError(e);
-            }
-            catch (NullPointerException npe){
+            } catch (NullPointerException npe) {
                 return;
             }
         }

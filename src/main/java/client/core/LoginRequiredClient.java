@@ -4,16 +4,9 @@ import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
 import client.core.interfaces.IAuthentication;
 import client.core.interfaces.callbacks.*;
-import com.google.common.net.InetAddresses;
 import com.sun.istack.internal.NotNull;
 
 import javax.mail.MessagingException;
-
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 
 import static client.utils.ActionUtil.callIfNotNull;
 
@@ -25,6 +18,8 @@ public abstract class LoginRequiredClient {
     private Callback beforeLoginCallback;
     private SuccessCallback successLoginCallback;
     private MessageErrorCallback errorLoginCallback;
+    private int delayTime;
+    private int attempts;
 
     public abstract <T extends LoginRequiredClient> T auth();
 
@@ -32,12 +27,34 @@ public abstract class LoginRequiredClient {
         this.authCallback = authCallback;
     }
 
+    public void setDelayTime(int delayTime) {
+        this.delayTime = delayTime;
+    }
+
+    public void setAttempts(int attempts) {
+        this.attempts = attempts;
+    }
+
+    public void setReconnectionData(int delayTime, int attempts) {
+        setDelayTime(delayTime);
+        setAttempts(attempts);
+    }
+
+    public int getAttempts() {
+        return attempts;
+    }
+
+    public int getDelayTime() {
+        return delayTime;
+    }
+
+    public <T extends LoginRequiredClient> T reconnectIfError(int delayTime, int attempts) {
+        return thisReference(() -> setReconnectionData(delayTime, attempts));
+    }
+
     public void setErrorLoginCallback(MessageErrorCallback errorLoginCallback) {
         this.errorLoginCallback = errorLoginCallback;
     }
-
-
-
 
 
     public void setSuccessLoginCallback(SuccessCallback successLoginCallback) {
@@ -118,17 +135,20 @@ public abstract class LoginRequiredClient {
 
     protected <T extends LoginRequiredClient> LoginCallback<T, MessagingException> getLoginCallbacks() {
         return new LoginCallback<T, MessagingException>() {
-            @Override public void beforeLogin() {
+            @Override
+            public void beforeLogin() {
                 final Callback callback = LoginRequiredClient.this.beforeLoginCallback;
                 callIfNotNull(callback, callback::call);
             }
 
-            @Override public void onLoginError(MessagingException e) {
+            @Override
+            public void onLoginError(MessagingException e) {
                 final MessageErrorCallback callback = LoginRequiredClient.this.errorLoginCallback;
                 callIfNotNull(callback, () -> callback.onError(e));
             }
 
-            @Override public void onSuccessLogin(T t) {
+            @Override
+            public void onSuccessLogin(T t) {
                 final SuccessCallback callback = LoginRequiredClient.this.successLoginCallback;
                 callIfNotNull(callback, callback::onSuccess);
             }

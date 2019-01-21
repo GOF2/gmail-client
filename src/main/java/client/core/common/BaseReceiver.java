@@ -30,4 +30,5 @@ public abstract class BaseReceiver {
     }
 
     public abstract void handleReceiving(IReceiver.ReceiveCallback callback);
+
 }

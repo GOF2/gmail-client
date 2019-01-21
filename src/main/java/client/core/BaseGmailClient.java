@@ -9,19 +9,21 @@ import client.core.common.Sender;
 import client.core.interfaces.IReceiver;
 import client.core.interfaces.ISender;
 import client.core.interfaces.MailAPI;
-import client.core.interfaces.callbacks.Callback;
-import client.core.interfaces.callbacks.LoginCallback;
-import client.core.interfaces.callbacks.MessageErrorCallback;
-import client.core.interfaces.callbacks.SuccessCallback;
+import client.core.interfaces.callbacks.*;
 import client.utils.LoginChecker;
 import com.sun.istack.internal.NotNull;
 
+import javax.mail.AuthenticationFailedException;
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
+import javax.mail.SendFailedException;
 
 import static client.utils.ActionUtil.callIfNotNull;
 
 
 public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
+    private int attemptsCount = 0;
+
     BaseGmailClient() {
     }
 
@@ -37,8 +39,10 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         try {
             LoginChecker.check(getAuthenticator());
             successAuth(callbacks);
-        } catch (MessagingException e) {
+        } catch (NoSuchProviderException | AuthenticationFailedException e) {
             errorAuth(callbacks, e);
+        } catch (MessagingException e) {
+            tryAgain(() -> auth(authData));
         }
     }
 
@@ -64,25 +68,50 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
     }
 
     @Override
-    public void send(SendedMessage message) throws MessagingException{
+    public void send(SendedMessage message) {
         final Sender sender = Sender.getInstance(getAuthenticator());
-        sender.send(message);
+        try {
+            if (getAuthenticator().isDataCorrect()) {
+                sender.send(message);
+            } else {
+                throw new AuthenticationFailedException("...");
+            }
+        } catch (NoSuchProviderException | AuthenticationFailedException | SendFailedException e) {
+            e.printStackTrace();
+        } catch (MessagingException e) {
+            tryAgain(() -> send(message));
+        }
     }
 
+    @Override
     public void send(SendedMessage message, ISender.SendCallback callback) {
         final Sender sender = Sender.getInstance(getAuthenticator());
         try {
-            sender.send(message);
-            callIfNotNull(callback, callback::onSuccess);
-        } catch (MessagingException e) {
+            if (getAuthenticator().isDataCorrect()) {
+                sender.send(message);
+                callIfNotNull(callback, callback::onSuccess);
+            } else {
+                throw new AuthenticationFailedException("Authetnication Failed...");
+            }
+        } catch (NoSuchProviderException | AuthenticationFailedException | SendFailedException e) {
             callback.onError(e);
+        } catch (MessagingException e) {
+            tryAgain(() -> send(message, callback));
         }
+        attemptsCount = 0;
     }
 
     public void send(SendedMessage message, SuccessCallback successCallback, MessageErrorCallback errorCallback) {
         send(message, new SendCallback() {
-            @Override public void onSuccess() { successCallback.onSuccess(); }
-            @Override public void onError(MessagingException e) { errorCallback.onError(e); }
+            @Override
+            public void onSuccess() {
+                successCallback.onSuccess();
+            }
+
+            @Override
+            public void onError(MessagingException e) {
+                errorCallback.onError(e);
+            }
         });
     }
 
@@ -112,6 +141,18 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
     private void successAuth(AuthCallback callback) {
         callIfNotNull(callback, callback::onSuccess);
         getAuthenticator().setDataCorrect(true);
+        attemptsCount = 0;
     }
 
+    private void tryAgain(Function function) {
+        if (attemptsCount < getAttempts()) {
+            try {
+                Thread.sleep(getDelayTime());
+                attemptsCount++;
+                function.call();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
