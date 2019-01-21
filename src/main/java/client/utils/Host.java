@@ -7,8 +7,13 @@ public class Host {
         Properties props = System.getProperties();
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtps.auth", "true");
+        props.put("mail.smtp.port","465");
         props.put("mail.smtp.protocol","smtps");
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtps.timeout", "5000");
+        props.put("mail.smtps.connectiontimeout", "5000");
+        props.put("mail.smtp.ssl.trust", "*");
+
         return props;
     }
 
@@ -20,6 +25,8 @@ public class Host {
         props.put("mail.imaps.starttls.enable", "true");
         props.put("mail.imaps.partialfetch", false);
         props.put("mail.imaps.fetchsize", "1048576");
+        props.put("mail.imaps.timeout", "5000");
+        props.put("mail.imaps.connectiontimeout", "5000");
         return props;
     }
 }

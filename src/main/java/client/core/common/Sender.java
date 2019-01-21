@@ -1,7 +1,6 @@
 package client.core.common;
 
 import client.authenticator.EmailAuthenticator;
-import client.core.exceptions.NoInternetException;
 import client.utils.Host;
 
 import javax.activation.DataHandler;
@@ -32,28 +31,21 @@ public class Sender {
         this.authenticator = authenticator;
     }
 
-    public void send(SendedMessage message) throws NoSuchProviderException, NoInternetException, SendFailedException {
+    public void send(SendedMessage message) throws MessagingException {
         final Session session = Session.getInstance(Host.getSendProperties(), authenticator);
         final MimeMessage mess = formMessage(authenticator, message, session);
         transport = session.getTransport(Host.getSendProperties().getProperty("mail.smtp.protocol"));
-        try {
-            final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
-            transport.connect(
-                    Host.getSendProperties().getProperty("mail.smtp.host"),
-                    authentication.getUserName(),
-                    authentication.getPassword()
-            );
-            transport.sendMessage(mess, mess.getAllRecipients());
-        } catch (SendFailedException | NoInternetException e) {
-            // It also looks strange...
-            throw e;
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
+        final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
+        transport.connect(
+                Host.getSendProperties().getProperty("mail.smtp.host"),
+                authentication.getUserName(),
+                authentication.getPassword()
+        );
+        transport.sendMessage(mess, mess.getAllRecipients());
     }
 
 
-    private InternetAddress[] adresses(SendedMessage message) {
+    private InternetAddress[] addresses(SendedMessage message) {
         InternetAddress[] addresses = new InternetAddress[message.getTo().length];
         try {
             for (int i = 0; i < message.getTo().length; i++) {
@@ -66,62 +58,49 @@ public class Sender {
     }
 
 
-    private MimeMessage formMessage(EmailAuthenticator authenticator, SendedMessage message, Session session) {
+    private MimeMessage formMessage(EmailAuthenticator authenticator, SendedMessage message, Session session) throws MessagingException{
         MimeMessage mess = new MimeMessage(session);
         try {
-            mess.setRecipients(MimeMessage.RecipientType.TO, adresses(message));
+            mess.setRecipients(MimeMessage.RecipientType.TO, addresses(message));
             mess.setSubject(message.getSubject());
             mess.setContent(multipart(message));
             mess.setFrom(new InternetAddress(
                     authenticator.getPasswordAuthentication().getUserName(), message.getFrom()));
             mess.setSentDate(new Date());
             message.setDate(mess.getSentDate());
-        } catch (MessagingException | UnsupportedEncodingException e1) {
+        } catch (UnsupportedEncodingException e1) {
             e1.printStackTrace();
         }
         return mess;
     }
 
-    private Multipart multipart(SendedMessage message) {
+    private Multipart multipart(SendedMessage message) throws MessagingException{
         Multipart multipart = new MimeMultipart("mixed");
-        try {
             for (BodyPart body : bodyParts(message)) {
                 multipart.addBodyPart(body);
             }
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
         return multipart;
-
     }
 
 
-    private BodyPart[] bodyParts(SendedMessage message) {
+    private BodyPart[] bodyParts(SendedMessage message) throws MessagingException {
         BodyPart[] parts = new MimeBodyPart[1];
         MimeBodyPart messageBodyPart = new MimeBodyPart();
         MimeBodyPart attachBodyPart;
-        try {
-            messageBodyPart.setContent(message.getMessage(), "text/plain; charset=utf-8");
+        messageBodyPart.setContent(message.getMessage(), "text/plain; charset=utf-8");
+        parts[0] = messageBodyPart;
+        if (message.getAttachment() == null) {
+            return parts;
+        } else {
+            parts = new MimeBodyPart[message.getAttachment().length + 1];
             parts[0] = messageBodyPart;
-            if (message.getAttachment() == null) {
-                return parts;
-            } else {
-                parts = new MimeBodyPart[message.getAttachment().length + 1];
-                parts[0] = messageBodyPart;
-                for (int i = 0; i < message.getAttachment().length; i++) {
-                    DataSource source = new FileDataSource(message.getAttachment()[i]);
-                    attachBodyPart = new MimeBodyPart();
-                    try {
-                        attachBodyPart.setDataHandler(new DataHandler(source));
-                        attachBodyPart.setFileName(message.getAttachment()[i].getName());
-                        parts[i + 1] = attachBodyPart;
-                    } catch (MessagingException me) {
-                        me.printStackTrace();
-                    }
-                }
+            for (int i = 0; i < message.getAttachment().length; i++) {
+                DataSource source = new FileDataSource(message.getAttachment()[i]);
+                attachBodyPart = new MimeBodyPart();
+                attachBodyPart.setDataHandler(new DataHandler(source));
+                attachBodyPart.setFileName(message.getAttachment()[i].getName());
+                parts[i + 1] = attachBodyPart;
             }
-        } catch (MessagingException ae) {
-            ae.printStackTrace();
         }
         return parts;
     }

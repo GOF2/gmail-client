@@ -9,36 +9,28 @@ import javax.mail.*;
 class ConnectionManager {
     private static IMAPFolder folder;
 
-    static IMAPFolder getFolder(EmailAuthenticator authenticator) {
+    static IMAPFolder getFolder(EmailAuthenticator authenticator) throws MessagingException {
         if (folder == null) {
             return createdFolder(authenticator);
         }
         return folder;
     }
 
-    private static IMAPFolder createdFolder(EmailAuthenticator authenticator) {
+    private static IMAPFolder createdFolder(EmailAuthenticator authenticator) throws MessagingException {
         final Session session = Session.getInstance(Host.getReceiveProperties(), authenticator);
-        try {
-            final Store store = session.getStore(Host.getSendProperties().getProperty("mail.imaps.protocol"));
-            final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
-            store.connect(
-                    Host.getReceiveProperties().getProperty("mail.imap.host"),
-                    authentication.getUserName(),
-                    authentication.getPassword()
-            );
-            folder = (IMAPFolder) store.getFolder("INBOX");
-            folder.open(Folder.READ_WRITE);
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
+        final Store store = session.getStore(Host.getSendProperties().getProperty("mail.imaps.protocol"));
+        final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
+        store.connect(
+                Host.getReceiveProperties().getProperty("mail.imap.host"),
+                authentication.getUserName(),
+                authentication.getPassword()
+        );
+        folder = (IMAPFolder) store.getFolder("INBOX");
+        folder.open(Folder.READ_WRITE);
         return folder;
     }
 
-    static void close() {
-        try {
-            folder.close(false);
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
+    static void close() throws MessagingException {
+        folder.close(false);
     }
 }

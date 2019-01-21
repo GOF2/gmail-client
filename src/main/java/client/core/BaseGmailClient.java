@@ -5,7 +5,6 @@ import client.authenticator.EmailAuthenticator;
 import client.core.common.Receiver;
 import client.core.common.SendedMessage;
 import client.core.common.Sender;
-import client.core.exceptions.NoInternetException;
 import client.core.interfaces.IReceiver;
 import client.core.interfaces.ISender;
 import client.core.interfaces.MailAPI;
@@ -15,10 +14,7 @@ import client.core.interfaces.callbacks.SuccessCallback;
 import client.utils.LoginChecker;
 import com.sun.istack.internal.NotNull;
 
-import javax.mail.AuthenticationFailedException;
 import javax.mail.MessagingException;
-import javax.mail.NoSuchProviderException;
-import javax.mail.SendFailedException;
 
 import static client.utils.ActionUtil.callIfNotNull;
 
@@ -38,7 +34,7 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         try {
             LoginChecker.check(getAuthenticator());
             successAuth(callbacks);
-        } catch (NoSuchProviderException | AuthenticationFailedException | NoInternetException e) {
+        } catch (MessagingException e) {
             errorAuth(callbacks, e);
         }
     }
@@ -49,7 +45,7 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
         try {
             LoginChecker.check(getAuthenticator());
             successAuth(callback);
-        } catch (NoSuchProviderException | AuthenticationFailedException | NoInternetException e) {
+        } catch (MessagingException e) {
             errorAuth(callback, e);
         }
     }
@@ -64,31 +60,17 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
     }
 
     @Override
-    public void send(SendedMessage message) {
+    public void send(SendedMessage message) throws MessagingException{
         final Sender sender = Sender.getInstance(getAuthenticator());
-        try {
-            if (getAuthenticator().isDataCorrect()) {
-                sender.send(message);
-            }
-            else {
-                throw new AuthenticationFailedException("Auth data is incorrect");
-            }
-        } catch (NoSuchProviderException | AuthenticationFailedException| SendFailedException | NoInternetException e) {
-            e.printStackTrace();
-        }
+        sender.send(message);
     }
 
     public void send(SendedMessage message, ISender.SendCallback callback) {
         final Sender sender = Sender.getInstance(getAuthenticator());
         try {
-            if (getAuthenticator().isDataCorrect()) {
-                sender.send(message);
-                callIfNotNull(callback, callback::onSuccess);
-            }
-            else {
-                throw new AuthenticationFailedException("Auth data is incorrect");
-            }
-        } catch (NoSuchProviderException | AuthenticationFailedException | NoInternetException | SendFailedException e) {
+            sender.send(message);
+            callIfNotNull(callback, callback::onSuccess);
+        } catch (MessagingException e) {
             callback.onError(e);
         }
     }
