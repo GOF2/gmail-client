@@ -3,6 +3,7 @@ import client.core.GmailClient;
 import client.core.common.ReceivedMessage;
 import client.core.common.SendedMessage;
 import client.core.interfaces.IReceiver;
+import client.core.interfaces.ISender;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -19,14 +20,30 @@ public class GmailClientTest {
     public void tes() {
         final GmailClient client = getClient().auth();
         profile("send()", () -> {
-            client.send(buildMessage());
+            try {
+                client.send(buildMessage());
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
         });
     }
 
     @Test
     public void test() {
         final GmailClient client = getClient().auth();
-        client.send(buildMessage());
+
+        client.send(buildMessage(), new ISender.SendCallback() {
+            @Override
+            public void onError(MessagingException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+
+            @Override
+            public void onSuccess() {
+                System.out.println("Sent");
+            }
+        });
+
         client.receive(new IReceiver.ReceiveCallback() {
             @Override
             public void onReceive(Set<ReceivedMessage> messages) {
@@ -52,13 +69,12 @@ public class GmailClientTest {
                 System.out.println("Error: " + e.getMessage());
             }
         });
-        client.send(buildMessage());
     }
 
     private SendedMessage buildMessage() {
         return new SendedMessage("Yesterday", "All my troubles seemed so far away")
                 .from("John Lennon")
-                .to("bbwgd77@gmail.com");
+                .to("serhiy.mazur0@gmail.com");
     }
 
     private GmailClient getClient() {

@@ -33,7 +33,12 @@ public class Receiver extends BaseReceiver {
     @Override
     public void handleReceiving(IReceiver.ReceiveCallback callback) {
         this.receiveCallback = callback;
-        getFolder().addMessageCountListener(listener());
+        try {
+            getFolder().addMessageCountListener(listener());
+        } catch (MessagingException e) {
+            callback.onError(e);
+            System.out.println("cannot get folder in receiver");
+        }
         initialReceive(receiveCallback);
         receiveNewMessage();
     }
@@ -57,8 +62,14 @@ public class Receiver extends BaseReceiver {
     }
 
     private void receiveNewMessage() {
-        IMAPFolder folder = getFolder();
-        startListen(folder);
+        IMAPFolder folder = null;
+        try {
+            folder = getFolder();
+        } catch (MessagingException e) {
+            receiveCallback.onError(e);
+            System.out.println("cannot receive new message in receiver");
+        }
+        startListen(folder,receiveCallback);
     }
 
     private MessageCountAdapter listener() {
@@ -77,7 +88,7 @@ public class Receiver extends BaseReceiver {
         };
     }
 
-    private void startListen(IMAPFolder folder) {
+    private void startListen(IMAPFolder folder,IReceiver.ReceiveCallback callback) {
         Thread t = new Thread(
                 new IDLE(folder), "IMAP IDLE"
         );
@@ -86,9 +97,12 @@ public class Receiver extends BaseReceiver {
             System.out.println("Starting IDLE");
             try {
                 folder.idle();
-            } catch (MessagingException e) {
+            } catch ( MessagingException e) {
                 System.out.println("messaging exception while trying idle");
-                throw new RuntimeException(e);
+                callback.onError(e);
+            }
+            catch (NullPointerException npe){
+                return;
             }
         }
         if (t.isAlive()) {
