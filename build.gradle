@@ -32,8 +32,13 @@ dependencies {
     compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     compile 'org.checkerframework:checker:2.1.12'
 
+    task sonar(type:Exec) {commandLine "./gradlew sonarqube \
+   -Dsonar.projectKey=GOF2_gmail-client \
+   -Dsonar.organization=gof2 \
+   -Dsonar.host.url=https://sonarcloud.io \
+   -Dsonar.login=f41b1e3042c9235ccba6eb25f3265d35e60b68a1"}
 
-    // Use JUnit client.test framework
+        // Use JUnit client.test framework
     testImplementation 'junit:junit:4.12'
 }
 
