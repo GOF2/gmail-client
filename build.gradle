@@ -42,6 +42,12 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 }
 
+sonarqube {
+    properties {
+        property 'sonar.projectKey', 'AqzdH6lqSAyetzcqBEFeu9FRKAedodMAGlGzhdrmFPrkXXX32DIO21R9IzHnkSQxw2EJ6g8Gg66zWfp3OQO+Zrc65CQTA8UB3x+lTEMYPJXiMkDBCuZ1aj1iJZRlPEaWwpGF/5xOoT2gE0aRppncmdhEKVAZ/vgm0GydMZdXTdD3gHoAuQAvmtg5PMpgxc12sqYAnXkZMN9tS/b0C6WFOF5F3jvT9HiS3VPgOFUCryZCaEBeuWQrYzi2yD+IoCNQ8m504Dc0Dk0Tuzscrvi2Yl6ItWIPm9/7Mrk2cXpJOOGsRsccNK1wK5zV1Q+cxcFBy28YZ3bfLiTJncAEgQT/jVqckDW5/y104GnKdIB+4NsuUpoNtXmTdsUkY+pt+7NVy2MFyEscN/3hvt07MC1xVrjjsdrRrdZ/uMR5/laM5jZ3WQPBBvC6by18aO6DDnBc9hEqLKliyHMhV6YLtj9Nt1xNyVCUPCi8Q7zOSryjK8J1SORjHOz0fvmKJFwcL72Y1jHiizR++0uaXmqcKJxPuxCQb1x6Kpbpns/0VZLBZCYHC3A0IxkJQxeXYDCqVs8In2dnMiCXYUGLon23vfCoh+xisuMUbEHhdmRC8ywSofs0YGKzytkKbsfMkGUu/y6cu0CBKihhk+BhZL7PzuZcsT684CNntPm83ieVDQpK61E='
+    }
+}
+
 jar {
     manifest {
         attributes('Implementation-Title': project.name,
