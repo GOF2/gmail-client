@@ -15,6 +15,11 @@ install: true
 
 script:
   - ./gradlew check
+  - ./gradlew sonarqube \
+    -Dsonar.projectKey=GOF2_gmail-client \
+    -Dsonar.organization=gof2 \
+    -Dsonar.host.url=https://sonarcloud.io \
+    -Dsonar.login=f41b1e3042c9235ccba6eb25f3265d35e60b68a1
   - sonar-scanner
 
 
