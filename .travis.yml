@@ -15,7 +15,7 @@ install: true
 
 script:
   - ./gradlew check
-  - ./gradlew sonarqube
+  - sonar-scanner
 
 
 
