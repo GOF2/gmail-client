@@ -28,7 +28,6 @@ cache:
 
 addons:
   sonarcloud:
-    organization: "GOF2/gmail-client"
+    organization: "gof2"
     token:
-      secure: "Y9l/sZTro7htmQh+jUfTl0nPRwjMtNn3An4CNwdcSO5ik/f+W3i2JZFlCMdPxlXX4cXXaBP2XEODVc5+3bnvoqkV9a2r/QB2E8DRhBOCVCzsggebhoZRqrKrnbBEXOjxptFVtulvvFLUGsTjJB1iiWNiulPwFtA0zhXuj9BpOfu5LbOxlNsGj+zR/VkoWL1HhhwSfFzRwW0vKVgZtndHX4qdaP605LTMklg7/5R54R4Wp9Ncm6MuphR9W1TTZc4yRMAbN8u24sG9LYs2jWa/R3kGEU67T+3c+NimWIGw9BUXrvKgmdKuvZFxaoJ2XUaUOZHKbwG+Mve1L0e6Cjw2hLUHedDMLddRkjA3Ogo0E25f6MWMjyZTY2NrwcaLlJWSUKCLnpLxsN9kThKgp2Sxn5ebZ+OM4a8zf/41OzV87CXMnkebDpNanaJ6/RXAFpHUXjZy/jibu+7nPpCKiVMkUIluB2Pp+1UpZRxBhb+3Zdvhe39+eoz4ClFh5cfxDUdNcPsa7aBfVVpj17a8tstLzZYdXUgNejgIKty69q5bqMVFZda8OSqFLYYc0Of3ZIwI3msDCnf+8RBw71jwc+iliuP2HRA3oC3GH5wx6cECk9PAAZ7A54vjzicAB3yV+24Zj0PUeNrU/KTk63rRTrJsndgqlIlKcBHIgMCJuHvGeu8="
-
+      secure: $SONAR_TOKEN
