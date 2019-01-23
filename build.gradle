@@ -7,7 +7,11 @@
  */
 
 // Apply the java-library plugin to add support for Java Library
-apply plugin: 'java-library'
+
+plugins {
+    id "org.sonarqube" version "2.6"
+    id "java-library"
+}
 
 // In this section you declare where to find the dependencies of your project
 repositories {
@@ -39,4 +43,6 @@ jar {
                    'Implementation-Version': project.version)
     }
 }
+
+
 

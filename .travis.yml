@@ -35,6 +35,6 @@ addons:
   sonarcloud:
     organization: "sonarcloud"
     token:
-      secure: "40f8a285bc85a83793bccd0a312f83b7b648eec3"
+      secure: "60bc7deb4ac3f2693080160de1d49ec580db2bd8"
 
 
