@@ -1,0 +1,40 @@
+language: java
+
+sudo: false
+
+dist: trusty
+
+matrix:
+  include:
+    - os: linux
+      jdk: oraclejdk8
+before_install:
+  - if [[ "${TRAVIS_OS_NAME}" == linux ]]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; fi
+
+
+install: true
+
+
+script:
+  - ./gradlew check
+  - sonar-scanner
+
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+  - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.bin
+  - rm -f  $HOME/.gradle/caches/*/fileHashes/fileHashes.lock
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+
+addons:
+  sonarcloud:
+    organization: "sonarcloud"
+    token:
+      secure: "40f8a285bc85a83793bccd0a312f83b7b648eec3"
+
+
