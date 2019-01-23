@@ -24,6 +24,10 @@ cache:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
 
+sonarqube:
+    token: "SZwI2YSpyuyIMU9eEFYwEqveJGdOHKprmCqcaGWpu+Xezfm7Fxgjf0tO0s7sfhFn6HcjXb7ggUgzQBNcTQZHBtA+135uhmm2ob8fVDlMIJDL1zOKU3fEDwpe/pnlS9nfnALhnP1LD4MrDuGsKJFgSWaIJI46ACFRLTwPMmAi0ixwAHChh6iZ689zXFoM9giPTyGSPndQ+ariAcmm1k+lVjr7Wh16AUkz8d+KcSQJylwf9tAAdDo22gUp731k1HlvWVHIPTAMjwB5twyGKucL3LJCTrKGPbhijRnH4+CwzZS2Llz6SjZch56ZUWlgW4gkTG8eTgXk0WPza2jXdrC4N3u+uBx3cxgdbQioC7FKzQW2Bqm1B6YC/OlwIMKnNBDd0f45qgVV6MxEP2Cte3Mgq/MHXf4VGe6xIDmyFEab6uf+1QsAWlfaED5Mzonst1wcPTKexSy8CsUDKukZEGdKl8XWKgnp7VL/wms1ZhzIz9lZ4+eFWwywfh2viNGuMzjxLdnN44RcCzTaAPVElFPYcDgETw1k7LVn/L4QG8dMxqNs6+79sdIa9kJn3GZwscojHn9txao5BayN5JA2+X3jRlziVTbFixK3wRHgbG8X8OIgnbuc9011FLKwhg2N48arb5by8C7MiIV+EQV+5Sn2amYnoZN52/2YYJoWDGJ1dNc="
+
+
 addons:
   sonarcloud:
     organization: "sonarcloud"
