@@ -23,11 +23,15 @@ public final class EmailAuthenticator extends Authenticator {
         this.dataCorrect = dataCorrect;
     }
 
+    @Override
     public final PasswordAuthentication getPasswordAuthentication() {
         return new PasswordAuthentication(authData.getLogin(), authData.getPassword());
     }
 
     public static class Gmail {
+        private Gmail(){
+            throw new IllegalStateException("Gmail Utility class");
+        }
         public static EmailAuthenticator auth(String login, String password) {
             return new EmailAuthenticator(new AuthData(login, password));
         }

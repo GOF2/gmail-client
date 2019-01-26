@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MessageUtil {
+    private MessageUtil(){
+        throw new IllegalStateException("Message Util    class");
+    }
 
      static MimeMessage[] castToMime(Message[] messages) {
         return Arrays.stream(messages)
@@ -39,7 +42,7 @@ public class MessageUtil {
             final String text = getText(message);
             final Date date = message.getSentDate();
             final List<File> files = getAttachments(message);
-            if (files == null || files.size() == 0) {
+            if (files == null || files.isEmpty()) {
                 return getReceivedMessage(email, subject, text, date);
             } else {
                 return getReceivedMessage(email, subject, text, date, files);

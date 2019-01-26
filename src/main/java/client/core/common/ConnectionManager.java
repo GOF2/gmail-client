@@ -7,6 +7,9 @@ import com.sun.mail.imap.IMAPFolder;
 import javax.mail.*;
 
 class ConnectionManager {
+    private ConnectionManager(){
+        throw new IllegalStateException("Connection Manager class");
+    }
     private static IMAPFolder folder;
 
     static IMAPFolder getFolder(EmailAuthenticator authenticator) throws MessagingException {

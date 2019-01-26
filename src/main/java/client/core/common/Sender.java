@@ -12,7 +12,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Date;
 
 public class Sender {
-    private Transport transport;
     private EmailAuthenticator authenticator;
     private static Sender sender;
 
@@ -34,7 +33,7 @@ public class Sender {
     public void send(SendedMessage message) throws MessagingException {
         final Session session = Session.getInstance(Host.getSendProperties(), authenticator);
         final MimeMessage mess = formMessage(authenticator, message, session);
-        transport = session.getTransport(Host.getSendProperties().getProperty("mail.smtp.protocol"));
+        Transport transport = session.getTransport(Host.getSendProperties().getProperty("mail.smtp.protocol"));
         final PasswordAuthentication authentication = authenticator.getPasswordAuthentication();
         transport.connect(
                 Host.getSendProperties().getProperty("mail.smtp.host"),

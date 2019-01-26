@@ -1,8 +1,8 @@
 package client.core.common;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
@@ -35,4 +35,6 @@ public class ReceivedMessage extends BaseMessage implements Comparable<ReceivedM
     public int compareTo(ReceivedMessage o) {
         return this.getDate().compareTo(o.getDate());
     }
+
+
 }

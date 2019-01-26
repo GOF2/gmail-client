@@ -5,7 +5,7 @@ import com.sun.mail.imap.IMAPFolder;
 import javax.mail.MessagingException;
 
 public class IDLE implements Runnable {
-    private static final long KEEP_ALIVE_FREQ = 60 * 1000; // 5 minutes
+    private static final long KEEP_ALIVE_FREQ = 2 * 60 * 1000L; // 5 minutes
 
     private IMAPFolder folder;
 
@@ -18,17 +18,13 @@ public class IDLE implements Runnable {
         while (!Thread.interrupted()) {
             try {
                 Thread.sleep(KEEP_ALIVE_FREQ);
-
-                // Perform a NOOP just to keep alive the connection
-                System.out.println("Perfoming NOOP command");
                 folder.doCommand(p -> {
                     p.simpleCommand("NOOP", null);
                     return null;
                 });
             } catch (InterruptedException e) {
-                // Ignore, just aborting the thread...
+                Thread.currentThread().interrupt();
             } catch (MessagingException e) {
-                // Shouldn't really happen...
                 System.out.println("unexpected end of idle");
             }
         }

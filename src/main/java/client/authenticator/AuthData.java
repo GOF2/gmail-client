@@ -1,6 +1,7 @@
 package client.authenticator;
 
-import com.sun.istack.internal.NotNull;
+
+import javax.validation.constraints.NotNull;
 
 public class AuthData {
     private final String login;

@@ -10,6 +10,9 @@ import javax.mail.Store;
 import javax.mail.Transport;
 
 public class LoginChecker {
+    private LoginChecker(){
+        throw new IllegalStateException("Login Checker class");
+    }
 
     public static void check(String email, String password) throws MessagingException {
         final Session sessionSend = Session.getInstance(Host.getSendProperties());

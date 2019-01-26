@@ -3,6 +3,9 @@ package client.utils;
 import java.util.Properties;
 
 public class Host {
+    private Host(){
+        throw new IllegalStateException("Host class");
+    }
     public  static Properties getSendProperties() {
         Properties props = System.getProperties();
         props.put("mail.smtp.host", "smtp.gmail.com");

@@ -4,9 +4,10 @@ import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
 import client.core.interfaces.IAuthentication;
 import client.core.interfaces.callbacks.*;
-import com.sun.istack.internal.NotNull;
+
 
 import javax.mail.MessagingException;
+import javax.validation.constraints.NotNull;
 
 import static client.utils.ActionUtil.callIfNotNull;
 
@@ -104,14 +105,12 @@ public abstract class LoginRequiredClient {
     public <T extends LoginRequiredClient> T loginWith(@NotNull EmailAuthenticator emailAuthenticator) {
         final String login = emailAuthenticator.getAuthData().getLogin();
         final String password = Integer.toHexString(emailAuthenticator.getAuthData().getPassword().hashCode());
-        System.out.println("Login with: [" + login + ", " + password + "]");
         return thisReference(() -> setAuthenticator(emailAuthenticator));
     }
 
     public <T extends LoginRequiredClient> T loginWith(@NotNull AuthData authData) {
         final String login = authData.getLogin();
         final String password = Integer.toHexString(authData.getPassword().hashCode());
-        System.out.println("Login with: [" + login + ", " + password + "]");
         return thisReference(() -> setAuthData(authData));
     }
 

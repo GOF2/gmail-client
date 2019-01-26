@@ -37,7 +37,6 @@ public class Receiver extends BaseReceiver {
             getFolder().addMessageCountListener(listener());
         } catch (MessagingException e) {
             callback.onError(e);
-            System.out.println("cannot get folder in receiver");
         }
         initialReceive(receiveCallback);
         receiveNewMessage();
@@ -66,9 +65,10 @@ public class Receiver extends BaseReceiver {
             folder = getFolder();
         } catch (MessagingException e) {
             receiveCallback.onError(e);
-            System.out.println("cannot receive new message in receiver");
         }
-        startListen(folder, receiveCallback);
+        if(folder != null) {
+            startListen(folder, receiveCallback);
+        }
     }
 
     private MessageCountAdapter listener() {
@@ -93,11 +93,9 @@ public class Receiver extends BaseReceiver {
         );
         t.start();
         while (!Thread.interrupted()) {
-            System.out.println("Starting IDLE");
             try {
                 folder.idle();
             } catch (MessagingException e) {
-                System.out.println("messaging exception while trying idle");
                 callback.onError(e);
             } catch (NullPointerException npe) {
                 return;

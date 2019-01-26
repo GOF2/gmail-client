@@ -2,21 +2,23 @@ package client.core;
 
 import client.authenticator.AuthData;
 import client.authenticator.EmailAuthenticator;
-import client.core.common.IDLE;
 import client.core.common.Receiver;
 import client.core.common.SendedMessage;
 import client.core.common.Sender;
 import client.core.interfaces.IReceiver;
 import client.core.interfaces.ISender;
 import client.core.interfaces.MailAPI;
-import client.core.interfaces.callbacks.*;
+import client.core.interfaces.callbacks.Function;
+import client.core.interfaces.callbacks.LoginCallback;
+import client.core.interfaces.callbacks.MessageErrorCallback;
+import client.core.interfaces.callbacks.SuccessCallback;
 import client.utils.LoginChecker;
-import com.sun.istack.internal.NotNull;
 
 import javax.mail.AuthenticationFailedException;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
 import javax.mail.SendFailedException;
+import javax.validation.constraints.NotNull;
 
 import static client.utils.ActionUtil.callIfNotNull;
 
@@ -152,6 +154,7 @@ public class BaseGmailClient extends LoginRequiredClient implements MailAPI {
                 function.call();
             } catch (InterruptedException e) {
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
     }
