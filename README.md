@@ -1,5 +1,20 @@
 # gmail-client
-Java library based on javax.mail. Used for  <b> sending</b> and <b>receiving</b> mails with gmail account.
+[![SonarCloud](https://sonarcloud.io/images/project_badges/sonarcloud-white.svg)](https://sonarcloud.io/dashboard?id=gmail-client)
+[![Build Status](https://travis-ci.com/GOF2/gmail-client.svg?branch=test)](https://travis-ci.com/GOF2/gmail-client)
+
+Java library based on javax.mail. Used for  <b> sending</b> and <b>receiving</b> mails with gmail account.You can implement it in project by adding to gradle:
+```gradle
+
+repositories {
+    ...
+    maven { url 'https://jitpack.io' }
+
+}
+
+dependencies {
+	        implementation 'com.github.gof2:gmail-client:v0.0.9'
+	}
+```
 
 <b>To begin  with</b>, this Java library architecture based on [callback system](https://en.wikipedia.org/wiki/Callback_(computer_programming)) .This was done to help the user <b>react</b> on some actions such as Error while receiving , NoInternetConnection error. This allows to keep your program in soft flow of data with no critical errors.The problem of NoInternetConnection done by using the <b>reconnect system</b>.
 ### So,how to start using it ?
