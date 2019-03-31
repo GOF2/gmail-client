@@ -6,19 +6,17 @@ Java library based on javax.mail. Used for  <b> sending</b> and <b>receiving</b>
 ```gradle
 
 repositories {
-    ...
     maven { url 'https://jitpack.io' }
-
 }
 
 dependencies {
-	        implementation 'com.github.gof2:gmail-client:v0.0.9'
-	}
+    implementation 'com.github.gof2:gmail-client:v0.0.9'
+}
 ```
 
 <b>To begin  with</b>, this Java library architecture based on [callback system](https://en.wikipedia.org/wiki/Callback_(computer_programming)) .This was done to help the user <b>react</b> on some actions such as Error while receiving , NoInternetConnection error. This allows to keep your program in soft flow of data with no critical errors.The problem of NoInternetConnection done by using the <b>reconnect system</b>.
-### So,how to start using it ?
-# 1.Account authenthication
+### So, how to start using it?
+# 1.Account authentication
 ```java
     final GmailClient client = getClient().auth();
     private GmailClient getClient() {
@@ -27,7 +25,7 @@ dependencies {
                 .beforeLogin(() -> someActionBeforeLogin())
                 .reconnectIfError(millis, attempts)
                 .onLoginError(e -> someActionOnLoginError())
-                .onLoginSuccess(() -> someActionOnLoginError());
+                .onLoginSuccess(() -> someActionOnLoginSuccess());
     }
 ```
 # 2.Create and send message
@@ -38,7 +36,7 @@ dependencies {
                 .to("test.mail1@gmail.com")
                 .to("test.mail2@gmail.com")
                 .attachFiles(fileName);
-    }
+ }
 
  client.send(yourMessage(), new ISender.SendCallback() {
             @Override
@@ -50,28 +48,23 @@ dependencies {
             public void onSuccess() {
                 yourActionOnSuccessSending();
             }
-        });
+ });
 ```
 # 3.Receive messages
 ```java
  client.receive(new IReceiver.ReceiveCallback() {
             @Override
             public void onReceive(Set<ReceivedMessage> messages) {
-                System.out.println("=====================================================");
                 System.out.println("Received messages: " + messages
                         .stream()
-                        .map(m -> (m.getMessage() + " => " + m.getDate()).trim())
+                        .map(m -> m.getMessage() + " => " + m.getDate())
                         .collect(Collectors.joining("\n"))
                 );
-                System.out.println("Received size: " + messages.size());
-                System.out.println("=====================================================");
             }
 
             @Override
             public void onUpdate(ReceivedMessage message) {
-                System.out.println("-----------------------------------------------------------------");
-                System.out.println("New message: " + (message.getMessage() + " => " + message.getDate()).trim());
-                System.out.println("-----------------------------------------------------------------");
+                System.out.println("New message: " + message.getMessage() + " => " + message.getDate());
             }
 
             @Override
